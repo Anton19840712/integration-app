@@ -2,7 +2,6 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using RabbitMQ.Client;
 using Serilog;
-using servers_api.api.rest.controllers;
 using servers_api.api.rest.minimal.common;
 using servers_api.api.rest.minimal.http;
 using servers_api.middleware;

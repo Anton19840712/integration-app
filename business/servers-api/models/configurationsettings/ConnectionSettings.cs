@@ -1,12 +1,13 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace servers_api.models.configurationsettings;
-
-public class ConnectionSettings
+namespace servers_api.models.configurationsettings
 {
-	[JsonPropertyName("clientSettings")]
-	public ClientSettings ClientConnectionSettings { get; set; }
+	public class ConnectionSettings
+	{
+		[JsonPropertyName("clientSettings")]
+		public ClientSettings ClientConnectionSettings { get; set; }
 
-	[JsonPropertyName("serverSettings")]
-	public ServerSettings ServerConnectionSettings { get; set; }
+		[JsonPropertyName("serverSettings")]
+		public ServerSettings ServerConnectionSettings { get; set; }
+	}
 }

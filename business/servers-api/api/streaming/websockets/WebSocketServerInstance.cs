@@ -5,7 +5,7 @@ using servers_api.factory;
 using servers_api.models.internallayer.instance;
 using servers_api.models.response;
 
-namespace servers_api.protocols.websockets
+namespace servers_api.api.streaming.websockets
 
 {
 	public class WebSocketServerInstance : IUpServer

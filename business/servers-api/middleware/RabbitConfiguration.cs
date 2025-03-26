@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using rabbit_listener;
 using RabbitMQ.Client;
 using Serilog;
 using servers_api.models.configurationsettings;

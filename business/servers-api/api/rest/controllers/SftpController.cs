@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Renci.SshNet;
-using servers_api.api.controllers;
 using servers_api.models.configurationsettings;
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 
 public class SftpController : ControllerBase
@@ -76,5 +75,25 @@ public class SftpController : ControllerBase
 		using var sha256 = SHA256.Create();
 		byte[] hashBytes = sha256.ComputeHash(fileContent);
 		return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+	}
+}
+
+public class FileHashService
+{
+	private readonly ConcurrentDictionary<string, bool> _processedFileHashes = new();
+
+	public bool TryAddHash(string fileHash)
+	{
+		return _processedFileHashes.TryAdd(fileHash, true);
+	}
+
+	public bool RemoveHash(string fileHash)
+	{
+		return _processedFileHashes.TryRemove(fileHash, out _);
+	}
+
+	public bool ContainsHash(string fileHash)
+	{
+		return _processedFileHashes.ContainsKey(fileHash);
 	}
 }

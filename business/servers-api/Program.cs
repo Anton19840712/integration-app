@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using rabbit_listener;
 using RabbitMQ.Client;
 using Serilog;
-using servers_api.api.controllers;
-using servers_api.api.minimal;
+using servers_api.api.rest.controllers;
+using servers_api.api.rest.minimal.common;
+using servers_api.api.rest.minimal.http;
 using servers_api.middleware;
 using servers_api.models.configurationsettings;
 using servers_api.models.entities;
@@ -97,6 +97,8 @@ try
 	app.MapIntegrationMinimalApi(factory);
 	app.MapAdminMinimalApi(factory);
 	app.MapTestMinimalApi(factory);
+	app.MapHttpBasedGetEndpoints(factory);
+	app.MapHttpBasedPostEndpoints(factory);
 
 	Log.Information("Динамический шлюз запущен и готов к эксплуатации.");	
 

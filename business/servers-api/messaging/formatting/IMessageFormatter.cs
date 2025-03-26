@@ -1,10 +1,11 @@
 ﻿using System.Text.Json;
 
-namespace servers_api.messaging.formatting;
-
-public interface IMessageFormatter
+namespace servers_api.messaging.formatting
 {
-	string DecodeUnicodeEscape(string input);
-	string FormatJson(string json);
-	void WriteFormattedJson(JsonElement element, Utf8JsonWriter writer);
+	public interface IMessageFormatter
+	{
+		string DecodeUnicodeEscape(string input);
+		string FormatJson(string json);
+		void WriteFormattedJson(JsonElement element, Utf8JsonWriter writer);
+	}
 }

@@ -1,76 +1,51 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using System.Text;
 
-public class Program
+class Program
 {
-	public static async Task Main(string[] args)
+	private static async Task Main(string[] args)
 	{
-		Console.Title = "http-test-client";
-		using var host = Host.CreateDefaultBuilder(args)
-			.ConfigureServices(services =>
-			{
-				services.AddHostedService<HttpClientService>();
-			})
-			.ConfigureLogging(logging =>
-			{
-				logging.ClearProviders();
-				logging.AddConsole();
-			})
-			.Build();
 
-		await host.RunAsync();
-	}
-}
+		// Убедитесь, что адрес соответствует вашему SSE серверу
+		var serverUrl = "http://localhost:52799/sse";
 
-public class HttpClientService : IHostedService
-{
-	private readonly ILogger<HttpClientService> _logger;
-	private readonly HttpClient _httpClient = new HttpClient();
-	private CancellationTokenSource _cts;
-	private Task _clientTask;
-	private const string ServerUrl = "http://127.0.0.1:5001/";
+		// Создание HttpClient для подключения к серверу
+		using var client = new HttpClient();
 
-	public HttpClientService(ILogger<HttpClientService> logger)
-	{
-		_logger = logger;
-	}
+		// Запрос для получения потока SSE
+		var stream = await client.GetStreamAsync(serverUrl);
 
-	public Task StartAsync(CancellationToken cancellationToken)
-	{
-		_logger.LogInformation("Запуск HTTP-клиента...");
-		_cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		_clientTask = Task.Run(() => ConnectToServerAsync(_cts.Token), _cts.Token);
-		return Task.CompletedTask;
-	}
+		// Чтение данных из потока
+		using var reader = new StreamReader(stream, Encoding.UTF8);
 
-	private async Task ConnectToServerAsync(CancellationToken token)
-	{
-		while (!token.IsCancellationRequested)
+		Console.WriteLine("Connected to SSE server...");
+
+		while (true)
 		{
 			try
 			{
-				_logger.LogInformation($"Отправка запроса на {ServerUrl}...");
-				var response = await _httpClient.GetStringAsync(ServerUrl);
-				_logger.LogInformation($"Ответ от сервера: {response}");
+				// Чтение строки из потока
+				var line = await reader.ReadLineAsync();
 
-				// Логирование успешного соединения
-				_logger.LogInformation("Соединение с сервером успешно установлено.");
+				if (line == null)
+				{
+					// Если поток закрыт
+					break;
+				}
+
+				// Вывод полученной строки (сообщения)
+				if (line.StartsWith("data: "))
+				{
+					var message = line.Substring(6); // Убираем префикс "data: "
+					Console.WriteLine($"Received message: {message}");
+				}
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError($"Ошибка: {ex.Message}");
-				_logger.LogWarning("Соединение с сервером разорвано или недоступно.");
+				Console.WriteLine($"Error receiving message: {ex.Message}");
+				break;
 			}
-
-			await Task.Delay(5000, token); // Повторный запрос через 5 сек
 		}
-	}
 
-	public Task StopAsync(CancellationToken cancellationToken)
-	{
-		_logger.LogInformation("Остановка HTTP-клиента...");
-		_cts?.Cancel();
-		return _clientTask ?? Task.CompletedTask;
+		Console.WriteLine("Disconnected from SSE server.");
 	}
 }

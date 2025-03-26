@@ -1,24 +1,25 @@
 ﻿using Serilog;
 
-namespace servers_api.middleware;
-
-/// <summary>
-/// Класс используется для предоставления возможности настройщику системы
-/// динамически задавать хост и порт самого динамического шлюза.
-/// </summary>
-public static class GateConfiguration
+namespace servers_api.middleware
 {
-	public static void ConfigureDynamicGate(string[] args, WebApplicationBuilder builder)
+	/// <summary>
+	/// Класс используется для предоставления возможности настройщику системы
+	/// динамически задавать хост и порт самого динамического шлюза.
+	/// </summary>
+	public static class GateConfiguration
 	{
-		string port = args.FirstOrDefault(arg => arg.StartsWith("--port="))?.Split('=')[1];
-		if (string.IsNullOrEmpty(port))
+		public static void ConfigureDynamicGate(string[] args, WebApplicationBuilder builder)
 		{
-			Log.Error("Порт не указан. Пример: MyApp.exe --port=5001");
-			return;
-		}
+			string port = args.FirstOrDefault(arg => arg.StartsWith("--port="))?.Split('=')[1];
+			if (string.IsNullOrEmpty(port))
+			{
+				Log.Error("Порт не указан. Пример: MyApp.exe --port=5001");
+				return;
+			}
 
-		string url = $"http://localhost:{port}";
-		builder.WebHost.UseUrls(url);
-		Log.Information("Приложение будет запущено по адресу: {Url}", url);
+			string url = $"http://localhost:{port}";
+			builder.WebHost.UseUrls(url);
+			Log.Information("Приложение будет запущено по адресу: {Url}", url);
+		}
 	}
 }

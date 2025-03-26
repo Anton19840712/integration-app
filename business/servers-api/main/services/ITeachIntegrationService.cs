@@ -1,11 +1,12 @@
 ﻿using System.Text.Json;
 using servers_api.models.response;
 
-namespace servers_api.main.services;
-
-public interface ITeachIntegrationService
+namespace servers_api.main.services
 {
-	Task<List<ResponseIntegration>> TeachAsync(
-		JsonElement jsonBody,
-		CancellationToken stoppingToke);
+	public interface ITeachIntegrationService
+	{
+		Task<List<ResponseIntegration>> TeachAsync(
+			JsonElement jsonBody,
+			CancellationToken stoppingToke);
+	}
 }

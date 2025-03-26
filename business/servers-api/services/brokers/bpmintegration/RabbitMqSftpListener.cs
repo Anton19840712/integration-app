@@ -8,10 +8,9 @@ using RabbitMQ.Client.Events;
 using Renci.SshNet;
 using servers_api.models.configurationsettings;
 using servers_api.models.queues;
-using servers_api.services.brokers.bpmintegration;
 using IConnectionFactory = RabbitMQ.Client.IConnectionFactory;
 
-namespace rabbit_listener
+namespace servers_api.services.brokers.bpmintegration
 {
 	public class RabbitMqSftpListener : IRabbitMqQueueListener<RabbitMqSftpListener>
 	{

@@ -1,21 +1,22 @@
 ﻿using Serilog;
 
-namespace servers_api.middleware;
-
-/// <summary>
-/// Класс обслуживает логику паттерна outbox.
-/// </summary>
-public static class OutboxConfiguration
+namespace servers_api.middleware
 {
-	public static IServiceCollection AddOutboxServices(this IServiceCollection services)
+	/// <summary>
+	/// Класс обслуживает логику паттерна outbox.
+	/// </summary>
+	public static class OutboxConfiguration
 	{
-		Log.Information("Регистрация OutboxProcessor...");
+		public static IServiceCollection AddOutboxServices(this IServiceCollection services)
+		{
+			Log.Information("Регистрация OutboxProcessor...");
 
-		// Регистрируем как IHostedService для фонового выполнения
+			// Регистрируем как IHostedService для фонового выполнения
 
-		services.AddHostedService<OutboxMongoBackgroundService>();
+			services.AddHostedService<OutboxMongoBackgroundService>();
 
-		Log.Information("OutboxProcessor зарегистрирован.");
-		return services;
+			Log.Information("OutboxProcessor зарегистрирован.");
+			return services;
+		}
 	}
 }

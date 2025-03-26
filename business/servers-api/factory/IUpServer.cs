@@ -1,11 +1,12 @@
 ﻿using servers_api.models.internallayer.instance;
 using servers_api.models.response;
 
-namespace servers_api.factory;
-
-public interface IUpServer
+namespace servers_api.factory
 {
-	Task<ResponseIntegration> UpServerAsync(
-		ServerInstanceModel instanceModel,
-		CancellationToken cancellationToken);
+	public interface IUpServer
+	{
+		Task<ResponseIntegration> UpServerAsync(
+			ServerInstanceModel instanceModel,
+			CancellationToken cancellationToken);
+	}
 }

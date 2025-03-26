@@ -8,10 +8,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Remove="protocols\tcp\NewFolder\**" />
-		<Content Remove="protocols\tcp\NewFolder\**" />
-		<EmbeddedResource Remove="protocols\tcp\NewFolder\**" />
-		<None Remove="protocols\tcp\NewFolder\**" />
+		<Compile Remove="api\streaming\tcp\NewFolder\**" />
+		<Content Remove="api\streaming\tcp\NewFolder\**" />
+		<EmbeddedResource Remove="api\streaming\tcp\NewFolder\**" />
+		<None Remove="api\streaming\tcp\NewFolder\**" />
 	</ItemGroup>
 
 	<ItemGroup>

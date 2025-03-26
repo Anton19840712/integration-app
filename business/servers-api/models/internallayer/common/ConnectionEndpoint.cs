@@ -1,42 +1,43 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace servers_api.models.internallayer.common;
-
-public class ConnectionEndpoint
+namespace servers_api.models.internallayer.common
 {
-	[JsonPropertyName("host")]
-	public string Host { get; set; }
-
-	[JsonPropertyName("port")]
-	[JsonConverter(typeof(PortConverter))] // Применяем кастомный конвертер для порта
-	public int? Port { get; set; }
-}
-
-public class PortConverter : JsonConverter<int?>
-{
-	public override int? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	public class ConnectionEndpoint
 	{
-		// Если значение это строка, пробуем преобразовать его в число
-		if (reader.TokenType == JsonTokenType.String)
-		{
-			if (int.TryParse(reader.GetString(), out int result))
-			{
-				return result;
-			}
-		}
-		// Если это число, просто возвращаем его
-		else if (reader.TokenType == JsonTokenType.Number)
-		{
-			return reader.GetInt32();
-		}
+		[JsonPropertyName("host")]
+		public string Host { get; set; }
 
-		return null; // В случае ошибки вернем null
+		[JsonPropertyName("port")]
+		[JsonConverter(typeof(PortConverter))] // Применяем кастомный конвертер для порта
+		public int? Port { get; set; }
 	}
 
-	public override void Write(Utf8JsonWriter writer, int? value, JsonSerializerOptions options)
+	public class PortConverter : JsonConverter<int?>
 	{
-		// Записываем число или null
-		writer.WriteNumberValue(value ?? 0);
+		public override int? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+		{
+			// Если значение это строка, пробуем преобразовать его в число
+			if (reader.TokenType == JsonTokenType.String)
+			{
+				if (int.TryParse(reader.GetString(), out int result))
+				{
+					return result;
+				}
+			}
+			// Если это число, просто возвращаем его
+			else if (reader.TokenType == JsonTokenType.Number)
+			{
+				return reader.GetInt32();
+			}
+
+			return null; // В случае ошибки вернем null
+		}
+
+		public override void Write(Utf8JsonWriter writer, int? value, JsonSerializerOptions options)
+		{
+			// Записываем число или null
+			writer.WriteNumberValue(value ?? 0);
+		}
 	}
 }

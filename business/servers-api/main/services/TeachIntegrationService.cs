@@ -6,84 +6,85 @@ using servers_api.services.brokers.bpmintegration;
 using servers_api.Services.InternalSystems;
 using servers_api.Services.Parsers;
 
-namespace servers_api.main.services;
-
-/// <summary>
-/// Общий менеджер-сервис, занимающийся процессингом настройки
-/// всей инфраструктуры динамического шлюза под отдельную организацию.
-/// </summary>
-public class TeachIntegrationService(
-	MongoRepository<QueuesEntity> queuesRepository,
-	ITeachSenderHandler teachService,
-	IJsonParsingService jsonParsingService,
-	IRabbitMqQueueListener<RabbitMqQueueListener> queueListener,
-	ILogger<TeachIntegrationService> logger) : ITeachIntegrationService
+namespace servers_api.main.services
 {
-	public async Task<List<ResponseIntegration>> TeachAsync(
-		JsonElement jsonBody,
-		CancellationToken stoppingToken)
+	/// <summary>
+	/// Общий менеджер-сервис, занимающийся процессингом настройки
+	/// всей инфраструктуры динамического шлюза под отдельную организацию.
+	/// </summary>
+	public class TeachIntegrationService(
+		MongoRepository<QueuesEntity> queuesRepository,
+		ITeachSenderHandler teachService,
+		IJsonParsingService jsonParsingService,
+		IRabbitMqQueueListener<RabbitMqQueueListener> queueListener,
+		ILogger<TeachIntegrationService> logger) : ITeachIntegrationService
 	{
-		logger.LogInformation("Начало обработки TeachAsync");
-
-		try
+		public async Task<List<ResponseIntegration>> TeachAsync(
+			JsonElement jsonBody,
+			CancellationToken stoppingToken)
 		{
-			//1
-			logger.LogInformation("Выполняется ParseJsonAsync.");
-			var parsedCombinedModel = await jsonParsingService.ParseJsonAsync(
-				jsonBody,
-				isTeaching: true,
-				stoppingToken);
+			logger.LogInformation("Начало обработки TeachAsync");
 
-			//2 логика работы с коллекцией базы данных: 
-			//если модель с такими названиями очередей существует:
-			var existingQueueEntityModel = (await queuesRepository.FindAsync(x =>
-				x.InQueueName == parsedCombinedModel.InQueueName &&
-				x.OutQueueName == parsedCombinedModel.OutQueueName)).FirstOrDefault();
-
-			logger.LogInformation("Выполняется сохранение в базу очередей.");
-			var incomingQueuesEntitySave = new QueuesEntity()
+			try
 			{
-				InQueueName = parsedCombinedModel.InQueueName,
-				OutQueueName = parsedCombinedModel.OutQueueName
-			};
+				//1
+				logger.LogInformation("Выполняется ParseJsonAsync.");
+				var parsedCombinedModel = await jsonParsingService.ParseJsonAsync(
+					jsonBody,
+					isTeaching: true,
+					stoppingToken);
 
-			if (existingQueueEntityModel != null)
-			{
-				await queuesRepository.UpdateAsync(
-					existingQueueEntityModel.Id,
-					incomingQueuesEntitySave);
-			}
-			else
-			{
-				// Если модели нет — вставляем эту новую:
-				await queuesRepository.InsertAsync(incomingQueuesEntitySave);
-			}
+				//2 логика работы с коллекцией базы данных: 
+				//если модель с такими названиями очередей существует:
+				var existingQueueEntityModel = (await queuesRepository.FindAsync(x =>
+					x.InQueueName == parsedCombinedModel.InQueueName &&
+					x.OutQueueName == parsedCombinedModel.OutQueueName)).FirstOrDefault();
 
-			//3
-			logger.LogInformation("Выполняется ExecuteTeachAsync.");
-			var apiStatus = await teachService.TeachBPMAsync(
-				parsedCombinedModel,
-				stoppingToken);
+				logger.LogInformation("Выполняется сохранение в базу очередей.");
+				var incomingQueuesEntitySave = new QueuesEntity()
+				{
+					InQueueName = parsedCombinedModel.InQueueName,
+					OutQueueName = parsedCombinedModel.OutQueueName
+				};
 
-			//4
-			logger.LogInformation("Запускаем слушателя в фоне для очереди: {Queue}.", parsedCombinedModel.OutQueueName);
-
-				await queueListener.StartListeningAsync(
-				parsedCombinedModel.OutQueueName,
-				stoppingToken);
-
-			return [
-				apiStatus,
-				new ResponseIntegration {
-					Message = $"Cлушатель очeреди {parsedCombinedModel.OutQueueName} запустился.",
-					Result = true
+				if (existingQueueEntityModel != null)
+				{
+					await queuesRepository.UpdateAsync(
+						existingQueueEntityModel.Id,
+						incomingQueuesEntitySave);
 				}
-			];
-		}
-		catch (Exception ex)
-		{
-			logger.LogError(ex, "Ошибка в процессе TeachAsync");
-			throw;
+				else
+				{
+					// Если модели нет — вставляем эту новую:
+					await queuesRepository.InsertAsync(incomingQueuesEntitySave);
+				}
+
+				//3
+				logger.LogInformation("Выполняется ExecuteTeachAsync.");
+				var apiStatus = await teachService.TeachBPMAsync(
+					parsedCombinedModel,
+					stoppingToken);
+
+				//4
+				logger.LogInformation("Запускаем слушателя в фоне для очереди: {Queue}.", parsedCombinedModel.OutQueueName);
+
+					await queueListener.StartListeningAsync(
+					parsedCombinedModel.OutQueueName,
+					stoppingToken);
+
+				return [
+					apiStatus,
+					new ResponseIntegration {
+						Message = $"Cлушатель очeреди {parsedCombinedModel.OutQueueName} запустился.",
+						Result = true
+					}
+				];
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Ошибка в процессе TeachAsync");
+				throw;
+			}
 		}
 	}
 }

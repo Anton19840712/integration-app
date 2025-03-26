@@ -40,7 +40,6 @@ public class ProtocolManager : IProtocolManager
 		{
 			"tcp" => serviceProvider.GetService<TcpFactory>(),  // Убираем необходимость использования GetRequiredService
 			"udp" => serviceProvider.GetService<UdpFactory>(),
-			"http" => serviceProvider.GetService<HttpFactory>(),
 			"ws" => serviceProvider.GetService<WebSocketFactory>(),
 			_ => null
 		};

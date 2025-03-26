@@ -7,7 +7,7 @@ using servers_api.validation;
 using servers_api.messaging.sending;
 using servers_api.factory;
 
-namespace servers_api.protocols.udp
+namespace servers_api.api.streaming.udp
 {
 	/// <summary>
 	/// UDP сервер, который продолжает отправлять сообщения после возврата ResponseIntegration.

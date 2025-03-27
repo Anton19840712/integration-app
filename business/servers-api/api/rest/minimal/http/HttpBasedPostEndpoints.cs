@@ -2,10 +2,12 @@
 
 namespace servers_api.api.rest.minimal.http
 {
+	// we are a client here, postman is a server and sents post requests
+
 	public static class HttpBasedPostEndpoints
 	{
 		/// <summary>
-		/// Этот endpoint получает сообщения из postman.
+		/// Этот endpoint получает сообщения из Postman.
 		/// </summary>
 		/// <param name="app"></param>
 		/// <param name="loggerFactory"></param>
@@ -15,9 +17,21 @@ namespace servers_api.api.rest.minimal.http
 		{
 			var logger = loggerFactory.CreateLogger("HttpBasedEndpoints");
 
-			// 1. SSE-like с использованием POST (постман шлёт запросы - сервер отвечает сразу)
+			// Вспомогательный метод для логирования заголовков
+			void LogHeaders(HttpContext context)
+			{
+				logger.LogInformation("Headers Received:");
+				foreach (var header in context.Request.Headers)
+				{
+					logger.LogInformation($"  {header.Key}: {header.Value}");
+				}
+			}
+
+			// 1. SSE-like с использованием POST (Postman шлёт запросы - сервер отвечает сразу)
 			app.MapPost("/post-sse", async (context) =>
 			{
+				LogHeaders(context);
+
 				var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
 				logger.LogInformation($"Received POST for SSE: {body}");
 
@@ -25,14 +39,16 @@ namespace servers_api.api.rest.minimal.http
 				await context.Response.WriteAsync(responseMessage);
 			});
 
-			// 2. Long Polling с POST (постман ждёт, пока сервер не отправит данные)
+			// 2. Long Polling с POST (Postman ждёт, пока сервер не отправит данные)
 			app.MapPost("/post-long-polling", async (HttpContext context) =>
 			{
-				var timeout = 30_000; // 30 секунд:
+				LogHeaders(context);
+
+				var timeout = 30_000; // 30 секунд
 				var startTime = DateTime.UtcNow;
 				logger.LogInformation("Post Long Polling: Waiting for new data...");
 
-				// пока 30 секунд не прошло (за это время мы ожидаем :
+				// Пока 30 секунд не прошло (за это время мы ожидаем новые данные)
 				while ((DateTime.UtcNow - startTime).TotalMilliseconds < timeout)
 				{
 					var hasNewData = DateTime.UtcNow.Second % 10 == 0;
@@ -48,9 +64,11 @@ namespace servers_api.api.rest.minimal.http
 				return Results.Ok(new { message = "No new messages" });
 			});
 
-			// 3. Short Polling с POST (постман выступает как сервер и шлет сюда свои сообщения, мы выступаем здесь как клиент)
+			// 3. Short Polling с POST (Postman выступает как сервер и шлёт сюда сообщения, мы клиент)
 			app.MapPost("/post-short-polling", async (HttpContext context) =>
 			{
+				LogHeaders(context);
+
 				var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
 				logger.LogInformation($"Short Polling Received: {body}");
 

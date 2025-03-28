@@ -2,7 +2,7 @@
 
 namespace servers_api.api.rest.minimal.http
 {
-	// // we are a server here, postman is a client and receives get requests
+	// we are a server here, postman is a client and receives get requests
 
 	public static class HttpBasedGetEndpoints
 	{

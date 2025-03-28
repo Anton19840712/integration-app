@@ -76,6 +76,8 @@ namespace servers_api.api.rest.minimal.common
 					return Results.Problem(ex.Message);
 				}
 			});
+
+			// можно добавить какие-то поиски по id сообщений
 		}
 	}
 }

@@ -32,6 +32,16 @@ namespace servers_api.api.rest.minimal.http
 			{
 				LogHeaders(context);
 
+				// валидация
+				// я как пнр выбираю какой именно сервис валидации (могу именно настроить путь до этого эндпоинта) отвечает за именно этот инстанс шлюза
+				// условно 
+
+
+				// приземление
+				// пульнули в шину
+				// ответили обратно на основании ответа от сервиса валидации заголовков
+				// то как оно пришло, оно должно шпульнуться в шину
+
 				var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
 				logger.LogInformation($"Received POST for SSE: {body}");
 
@@ -60,7 +70,9 @@ namespace servers_api.api.rest.minimal.http
 					}
 					await Task.Delay(500, context.RequestAborted);
 				}
-
+				// приземлили
+				// отдали в bpme - дождаться обратную связь от bpme (что-то должно прийти и я как-то должен отреагировать)
+				// ответили обратно
 				return Results.Ok(new { message = "No new messages" });
 			});
 
@@ -71,6 +83,11 @@ namespace servers_api.api.rest.minimal.http
 
 				var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
 				logger.LogInformation($"Short Polling Received: {body}");
+
+				// приземление
+				// пульнули в шину
+				// ответили обратно
+				// то как оно пришло, оно должно шпульнуться в шину
 
 				var responseMessage = $"Short Polling Response: {DateTime.Now}";
 				return Results.Ok(new { message = responseMessage });

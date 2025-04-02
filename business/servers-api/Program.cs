@@ -3,17 +3,78 @@ using MongoDB.Driver;
 using RabbitMQ.Client;
 using Serilog;
 using servers_api.api.rest.minimal.common;
-using servers_api.api.rest.minimal.http;
+using servers_api.messaging.processing;
 using servers_api.middleware;
 using servers_api.models.configurationsettings;
 using servers_api.models.entities;
 using servers_api.models.outbox;
 using servers_api.repositories;
 using servers_api.services.brokers.bpmintegration;
+using servers_api.validation.headers;
 
 Console.Title = "integration api";
 
+// Загружаем настройки из launchSettings.json и environment variables
 var builder = WebApplication.CreateBuilder(args);
+
+// Получаем параметры из командной строки
+var port = GetArgument(args, "--port=", GetConfigValue(builder, "applicationUrl", 5000));
+var host = GetArgument(args, "--host=", "localhost");
+var enableValidation = GetArgument(args, "--validate=", false);
+var companyName = GetArgument(args, "--company=", "default-company");
+
+//---------
+// Метод для парсинга аргументов командной строки
+static T GetArgument<T>(string[] args, string key, T defaultValue)
+{
+	var arg = args.FirstOrDefault(a => a.StartsWith(key));
+	if (arg != null)
+	{
+		var value = arg.Substring(key.Length);
+		try
+		{
+			return (T)Convert.ChangeType(value, typeof(T));
+		}
+		catch
+		{
+			Console.WriteLine($"Ошибка при разборе аргумента {key}. Используется значение по умолчанию: {defaultValue}");
+		}
+	}
+	return defaultValue;
+}
+// Метод для получения значения из конфигурации (например, из launchSettings.json)
+static T GetConfigValue<T>(WebApplicationBuilder builder, string key, T defaultValue)
+{
+	var configValue = builder.Configuration[key];
+	if (configValue != null)
+	{
+		try
+		{
+			return (T)Convert.ChangeType(configValue, typeof(T));
+		}
+		catch
+		{
+			Console.WriteLine($"Ошибка при разборе конфигурации по ключу {key}. Используется значение по умолчанию: {defaultValue}");
+		}
+	}
+	return defaultValue;
+}
+
+// Если валидация включена, регистрируем сервис валидации
+if (enableValidation)
+{
+	builder.Services.AddScoped<SimpleHeadersValidator>();
+	builder.Services.AddScoped<DetailedHeadersValidator>();
+	Console.WriteLine("Валидация включена");
+}
+else
+{
+	Console.WriteLine("Валидация отключена");
+}
+
+
+
+// Создание токенов отмены
 var cts = new CancellationTokenSource();
 
 // Настройка логирования
@@ -52,6 +113,9 @@ try
 	builder.Services.AddTransient<IMongoRepository<OutboxMessage>, MongoRepository<OutboxMessage>>();
 	builder.Services.AddTransient<IMongoRepository<IncidentEntity>, MongoRepository<IncidentEntity>>();
 
+	builder.Services.AddTransient<IHeaderValidationService, HeaderValidationService>();
+	builder.Services.AddTransient<IMessageProcessingService, MessageProcessingService>();
+
 	services.AddSingleton<MongoRepository<OutboxMessage>>();
 	services.AddSingleton<MongoRepository<QueuesEntity>>();
 	services.AddSingleton<MongoRepository<IncidentEntity>>();
@@ -86,8 +150,15 @@ try
 	//-------------
 
 	var app = builder.Build();
+	app.UseMiddleware<CompanyMiddlewareSettings>();
 
+	// Устанавливаем URL с переданными параметрами
+	var url = $"http://{host}:{port}";
+	app.Urls.Add(url);
+
+	Console.WriteLine($"Сервер запущен на {url}");
 	app.UseSerilogRequestLogging();
+
 	app.UseCors(cors => cors.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
 	var factory = app.Services.GetRequiredService<ILoggerFactory>();
@@ -96,8 +167,6 @@ try
 	app.MapIntegrationMinimalApi(factory);
 	app.MapAdminMinimalApi(factory);
 	app.MapTestMinimalApi(factory);
-	app.MapHttpBasedGetEndpoints(factory);
-	app.MapHttpBasedPostEndpoints(factory);
 
 	Log.Information("Динамический шлюз запущен и готов к эксплуатации.");	
 

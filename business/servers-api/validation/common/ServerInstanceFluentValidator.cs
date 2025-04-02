@@ -2,7 +2,7 @@
 using FluentValidation.Results;
 using servers_api.models.internallayer.instance;
 using servers_api.models.response;
-using servers_api.validation;
+using servers_api.validation.common;
 
 public class ServerInstanceFluentValidator : IServerInstanceFluentValidator
 {

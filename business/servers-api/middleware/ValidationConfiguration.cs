@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Serilog;
 using servers_api.models.internallayer.instance;
-using servers_api.validation;
+using servers_api.validation.common;
 
 namespace servers_api.middleware
 {

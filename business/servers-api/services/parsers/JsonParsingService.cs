@@ -16,13 +16,13 @@ public class JsonParsingService : IJsonParsingService
 		_logger = logger;
 	}
 
-	public Task<CombinedModel> ParseJsonAsync(JsonElement jsonBody, bool isIntegration, CancellationToken stoppingToken)
+	public Task<CombinedModel> ParseJsonAsync(JsonElement jsonBody, bool isTeaching, CancellationToken stoppingToken)
 	{
 		_logger.LogInformation("Начало разбора JSON");
 
 		try
 		{
-			if (!AreRequiredFieldsPresent(jsonBody, isIntegration))
+			if (!AreRequiredFieldsPresent(jsonBody, isTeaching))
 			{
 				_logger.LogWarning("Пропущены обязательные поля JSON");
 				throw new ArgumentException("Пропущены обязательные поля JSON");
@@ -34,12 +34,12 @@ public class JsonParsingService : IJsonParsingService
 			var inQueueName = $"{companyName}_in";
 			var outQueueName = $"{companyName}_out";
 
-			string jsonString = ConvertXmlToJson(jsonBody, dataFormat, isIntegration);
+			string jsonString = ConvertXmlToJson(jsonBody, dataFormat, isTeaching);
 
 			ConnectionSettings connectionSettings = null;
 			DataOptions dataOptions = null;
 
-			if (!isIntegration)
+			if (!isTeaching)
 			{
 				dataOptions = Deserialize<DataOptions>(jsonBody.GetProperty("dataOptions").GetRawText());
 				connectionSettings = DeserializeConnectionSettings(jsonBody.GetProperty("connectionSettings"));

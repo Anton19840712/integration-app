@@ -2,7 +2,7 @@
 using servers_api.models.internallayer.instance;
 using System.Net;
 
-namespace servers_api.validation
+namespace servers_api.validation.common
 {
 	public class ServerInstanceModelValidator : AbstractValidator<ServerInstanceModel>
 	{

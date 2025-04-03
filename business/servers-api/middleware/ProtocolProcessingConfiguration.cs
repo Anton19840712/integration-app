@@ -1,5 +1,4 @@
-﻿using Serilog;
-using servers_api.api.streaming.tcp;
+﻿using servers_api.api.streaming.tcp;
 using servers_api.api.streaming.udp;
 using servers_api.api.streaming.websockets;
 using servers_api.factory;
@@ -11,8 +10,6 @@ namespace servers_api.middleware
 	{
 		public static IServiceCollection AddFactoryServices(this IServiceCollection services)
 		{
-			Log.Information("Регистрация factory сервисов...");
-
 			// Менеджер протоколов
 			services.AddTransient<IProtocolManager, ProtocolManager>();
 
@@ -46,7 +43,6 @@ namespace servers_api.middleware
 			// Основные сервисы:
 			services.AddTransient<ITeachIntegrationService, TeachIntegrationService>();
 
-			Log.Information("Factory сервисы зарегистрированы.");
 			return services;
 		}
 	}

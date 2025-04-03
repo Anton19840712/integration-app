@@ -1,5 +1,5 @@
-﻿using Serilog;
-using servers_api.messaging.formatting;
+﻿using servers_api.messaging.formatting;
+using servers_api.messaging.processing;
 using servers_api.messaging.sending;
 
 namespace servers_api.middleware
@@ -11,12 +11,9 @@ namespace servers_api.middleware
 		/// </summary>
 		public static IServiceCollection AddMessageServingServices(this IServiceCollection services)
 		{
-			Log.Information("Регистрация сервисов, обслуживающих messaging process...");
-
 			services.AddTransient<IMessageSender, MessageSender>();
 			services.AddTransient<IMessageFormatter, MessageFormatter>();
-
-			Log.Information("Cервисы зарегистрированы.");
+			services.AddTransient<IMessageProcessingService, MessageProcessingService>();
 
 			return services;
 		}

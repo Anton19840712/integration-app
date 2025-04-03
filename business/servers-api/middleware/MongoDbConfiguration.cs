@@ -1,5 +1,5 @@
 ﻿using MongoDB.Driver;
-using Serilog;
+using servers_api.models.configurationsettings;
 using System.Security.Authentication;
 
 namespace servers_api.middleware
@@ -7,13 +7,12 @@ namespace servers_api.middleware
 	static class MongoDbConfiguration
 	{
 		/// <summary>
-		/// Регистрация MongoDB клиента и связная с работой с данной базой логика.
+		/// Регистрация MongoDB клиента и логики работы с базой.
 		/// </summary>
 		public static IServiceCollection AddMongoDbServices(this IServiceCollection services, IConfiguration configuration)
 		{
-			Log.Information("Регистрация MongoDB...");
-
 			var mongoSettings = configuration.GetSection("MongoDbSettings");
+			services.Configure<MongoDbSettings>(configuration.GetSection("MongoDbSettings"));
 
 			var user = mongoSettings.GetValue<string>("User");
 			var password = mongoSettings.GetValue<string>("Password");
@@ -29,14 +28,15 @@ namespace servers_api.middleware
 			var settings = MongoClientSettings.FromUrl(new MongoUrl(mongoUrl));
 			settings.SslSettings = new SslSettings { EnabledSslProtocols = SslProtocols.Tls12 };
 
+			// Регистрируем MongoClient один раз
 			services.AddSingleton<IMongoClient>(new MongoClient(settings));
+
+			// Регистрируем IMongoDatabase один раз
 			services.AddSingleton(sp =>
 			{
 				var client = sp.GetRequiredService<IMongoClient>();
 				return client.GetDatabase(databaseName);
 			});
-
-			Log.Information("MongoDB зарегистрирован.");
 
 			return services;
 		}

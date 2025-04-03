@@ -14,7 +14,6 @@ namespace servers_api.middleware
 		/// </summary>
 		public static IServiceCollection AddRabbitMqServices(this IServiceCollection services, IConfiguration configuration)
 		{
-			Log.Information("Инициализация RabbitMQ...");
 
 			// Регистрация настроек RabbitMq в DI-контейнере
 			services.Configure<RabbitMqSettings>(configuration.GetSection("RabbitMqSettings"));
@@ -26,7 +25,6 @@ namespace servers_api.middleware
 
 				if (rabbitMqSettings == null)
 				{
-					Log.Error("Конфигурация RabbitMQ отсутствует! Проверьте настройки.");
 					throw new InvalidOperationException("Конфигурация RabbitMQ отсутствует!");
 				}
 
@@ -35,7 +33,6 @@ namespace servers_api.middleware
 					string.IsNullOrWhiteSpace(rabbitMqSettings.UserName) ||
 					string.IsNullOrWhiteSpace(rabbitMqSettings.Password))
 				{
-					Log.Error("Некорректные настройки RabbitMQ: {@Settings}", rabbitMqSettings);
 					throw new InvalidOperationException("Некорректные настройки RabbitMQ! Проверьте конфигурацию.");
 				}
 
@@ -55,7 +52,11 @@ namespace servers_api.middleware
 			services.AddSingleton<IRabbitMqQueueListener<RabbitMqQueueListener>, RabbitMqQueueListener>();
 			services.AddSingleton<IRabbitMqQueueListener<RabbitMqSftpListener>, RabbitMqSftpListener>();
 
-			Log.Information("Сервисы, взаимодействующие с сетевой шиной, зарегистрированы.");
+			services.AddSingleton<IConnectionFactory, ConnectionFactory>(_ => new ConnectionFactory { HostName = "localhost" });
+
+			services.AddScoped<IRabbitMqQueueListener<RabbitMqSftpListener>, RabbitMqSftpListener>();
+			services.AddScoped<IRabbitMqQueueListener<RabbitMqQueueListener>, RabbitMqQueueListener>();
+
 			return services;
 		}
 	}

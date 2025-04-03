@@ -32,7 +32,7 @@ public class OutboxMongoBackgroundService : BackgroundService
 
 				foreach (var message in messages)
 				{
-					_logger.LogInformation($"Публикация сообщения: {message.Payload}.");
+					_logger.LogInformation($"Публикация сообщения: {message.Payload}");
 
 					await _rabbitMqService.PublishMessageAsync(
 						message.InQueue,
@@ -41,7 +41,7 @@ public class OutboxMongoBackgroundService : BackgroundService
 
 					await _outboxRepository.MarkMessageAsProcessedAsync(message.Id);
 
-					_logger.LogInformation($"Обработано в Outbox: {message.Payload}.");
+					_logger.LogInformation($"Обработано в Outbox: {message.Payload}");
 				}
 			}
 			catch (Exception ex)

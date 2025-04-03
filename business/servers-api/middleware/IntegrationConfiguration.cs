@@ -1,5 +1,4 @@
-﻿using Serilog;
-using servers_api.Services.InternalSystems;
+﻿using servers_api.Services.InternalSystems;
 using servers_api.Services.Parsers;
 
 namespace servers_api.middleware
@@ -11,12 +10,8 @@ namespace servers_api.middleware
 		/// </summary>
 		public static IServiceCollection AddApiServices(this IServiceCollection services)
 		{
-			Log.Information("Регистрация API-сервисов...");
-
 			services.AddTransient<IJsonParsingService, JsonParsingService>();
 			services.AddTransient<ITeachSenderHandler, TeachSenderHandler>();
-
-			Log.Information("API-сервисы зарегистрированы.");
 
 			return services;
 		}

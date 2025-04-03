@@ -1,6 +1,4 @@
-﻿using Serilog;
-
-namespace servers_api.middleware
+﻿namespace servers_api.middleware
 {
 	static class CommonConfiguration
 	{
@@ -9,11 +7,7 @@ namespace servers_api.middleware
 		/// </summary>
 		public static IServiceCollection AddCommonServices(this IServiceCollection services)
 		{
-			Log.Information("Регистрация базовых сервисов...");
-
 			services.AddCors();
-
-			Log.Information("Базовые сервисы зарегистрированы.");
 
 			return services;
 		}

@@ -4,23 +4,23 @@ namespace servers_api.validation.headers
 {
 	public class SimpleHeadersValidator : IHeadersValidator
 	{
-		public ResponseIntegration ValidateHeaders(IHeaderDictionary headers)
+		public Task<ResponseIntegration> ValidateHeadersAsync(IHeaderDictionary headers)
 		{
 			// Минимальная проверка: наличие X-Custom-Header
 			if (!headers.ContainsKey("X-Custom-Header"))
 			{
-				return new ResponseIntegration
+				return Task.FromResult(new ResponseIntegration
 				{
 					Message = "Missing required header: X-Custom-Header",
 					Result = false
-				};
+				});
 			}
 
-			return new ResponseIntegration
+			return Task.FromResult(new ResponseIntegration
 			{
 				Message = "Headers are valid.",
 				Result = true
-			};
+			});
 		}
 	}
 }

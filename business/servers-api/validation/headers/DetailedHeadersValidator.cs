@@ -11,7 +11,7 @@ namespace servers_api.validation.headers
 			_logger = logger;
 		}
 
-		public ResponseIntegration ValidateHeaders(IHeaderDictionary headers)
+		public Task<ResponseIntegration> ValidateHeadersAsync(IHeaderDictionary headers)
 		{
 			var errors = new List<string>();
 
@@ -45,18 +45,18 @@ namespace servers_api.validation.headers
 					_logger.LogError(error);
 				}
 
-				return new ResponseIntegration
+				return Task.FromResult(new ResponseIntegration
 				{
 					Message = string.Join("; ", errors),
 					Result = false
-				};
+				});
 			}
 
-			return new ResponseIntegration
+			return Task.FromResult(new ResponseIntegration
 			{
 				Message = "Headers validation passed",
 				Result = true
-			};
+			});
 		}
 	}
 }

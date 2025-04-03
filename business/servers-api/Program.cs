@@ -69,10 +69,11 @@ static T GetConfigValue<T>(WebApplicationBuilder builder, string key, T defaultV
 	return defaultValue;
 }
 
- 
+
 builder.Services.AddTransient<IHeadersValidator, SimpleHeadersValidator>();
 builder.Services.AddTransient<IHeadersValidator, DetailedHeadersValidator>();
 builder.Services.AddTransient<IHeaderValidationService, HeaderValidationService>();
+
 
 // Создание токенов отмены
 var cts = new CancellationTokenSource();
@@ -114,7 +115,10 @@ try
 	builder.Services.AddTransient<IMongoRepository<IncidentEntity>, MongoRepository<IncidentEntity>>();
 
 	// Валидация заголовков:
+	builder.Services.AddTransient<SimpleHeadersValidator>();
+	builder.Services.AddTransient<DetailedHeadersValidator>();
 	builder.Services.AddTransient<IHeaderValidationService, HeaderValidationService>();
+
 	builder.Services.AddTransient<IMessageProcessingService, MessageProcessingService>();
 
 	services.AddSingleton<MongoRepository<OutboxMessage>>();

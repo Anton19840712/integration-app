@@ -22,14 +22,13 @@ public class HttpProtocolController : ControllerBase
 	/// <exception cref="ArgumentNullException"></exception>
 	public HttpProtocolController(
 		ILogger<HttpProtocolController> logger,
-		IMongoRepository<OutboxMessage> outboxRepository,
-		IMongoRepository<IncidentEntity> incidentRepository,
 		IHeaderValidationService headerValidationService,
 		IMessageProcessingService messageProcessingService)
 	{
 		// проверка на зарегистрированность соответствующих сервисов для валидации headers:
 		_headerValidationService = headerValidationService;
 		_messageProcessingService = messageProcessingService;
+		_logger = logger;
 	}
 
 	[HttpPost("push")]
@@ -63,7 +62,7 @@ public class HttpProtocolController : ControllerBase
 
 		if (!isValid)
 		{
-			return BadRequest("Invalid headers");
+			_logger.LogWarning("Invalid headers.");
 		}
 
 		LogHeaders();

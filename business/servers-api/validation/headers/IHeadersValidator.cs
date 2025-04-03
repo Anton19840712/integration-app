@@ -4,6 +4,6 @@ namespace servers_api.validation.headers
 {
 	public interface IHeadersValidator
 	{
-		ResponseIntegration ValidateHeaders(IHeaderDictionary headers);
+		Task<ResponseIntegration> ValidateHeadersAsync(IHeaderDictionary headers);
 	}
 }

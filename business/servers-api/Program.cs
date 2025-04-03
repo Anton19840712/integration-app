@@ -18,10 +18,19 @@ Console.Title = "integration api";
 var builder = WebApplication.CreateBuilder(args);
 
 // Получаем параметры из командной строки
-var port = GetArgument(args, "--port=", GetConfigValue(builder, "applicationUrl", 5000));
+var port = GetArgument(args, "--port=", GetConfigValue(builder, "applicationUrl", 5000));// если не было ничего передано, будем запускаться на 5000 http
 var host = GetArgument(args, "--host=", "localhost");
-var enableValidation = GetArgument(args, "--validate=", false);
+var enableValidation = GetArgument(args, "--validate=", true);
 var companyName = GetArgument(args, "--company=", "default-company");
+
+// Зафиксируем параметры в конфигурации:
+builder.Configuration["CompanyName"] = companyName;
+builder.Configuration["Host"] = host;
+builder.Configuration["Port"] = port.ToString();
+builder.Configuration["Validate"] = enableValidation.ToString();
+
+builder.Services.Configure<CompanyMiddlewareSettings>(builder.Configuration);
+
 
 //---------
 // Метод для парсинга аргументов командной строки
@@ -60,19 +69,10 @@ static T GetConfigValue<T>(WebApplicationBuilder builder, string key, T defaultV
 	return defaultValue;
 }
 
-// Если валидация включена, регистрируем сервис валидации
-if (enableValidation)
-{
-	builder.Services.AddScoped<SimpleHeadersValidator>();
-	builder.Services.AddScoped<DetailedHeadersValidator>();
-	Console.WriteLine("Валидация включена");
-}
-else
-{
-	Console.WriteLine("Валидация отключена");
-}
-
-
+ 
+builder.Services.AddTransient<IHeadersValidator, SimpleHeadersValidator>();
+builder.Services.AddTransient<IHeadersValidator, DetailedHeadersValidator>();
+builder.Services.AddTransient<IHeaderValidationService, HeaderValidationService>();
 
 // Создание токенов отмены
 var cts = new CancellationTokenSource();
@@ -113,6 +113,7 @@ try
 	builder.Services.AddTransient<IMongoRepository<OutboxMessage>, MongoRepository<OutboxMessage>>();
 	builder.Services.AddTransient<IMongoRepository<IncidentEntity>, MongoRepository<IncidentEntity>>();
 
+	// Валидация заголовков:
 	builder.Services.AddTransient<IHeaderValidationService, HeaderValidationService>();
 	builder.Services.AddTransient<IMessageProcessingService, MessageProcessingService>();
 
@@ -137,7 +138,7 @@ try
 
 	services.AddTransient<FileHashService>();
 
-	// Регистрация конфигурации SftpSettings
+	// Регистрация конфигурации SftpSettings:
 	builder.Services.Configure<SftpSettings>(builder.Configuration.GetSection("SftpSettings"));
 
 
@@ -147,12 +148,16 @@ try
 	builder.Services.AddScoped<IRabbitMqQueueListener<RabbitMqSftpListener>, RabbitMqSftpListener>();
 	builder.Services.AddScoped<IRabbitMqQueueListener<RabbitMqQueueListener>, RabbitMqQueueListener>();
 
+
+
 	//-------------
+	// Установка параметров из командной строки:
+
 
 	var app = builder.Build();
 	app.UseMiddleware<CompanyMiddlewareSettings>();
 
-	// Устанавливаем URL с переданными параметрами
+	// Устанавливаем URL с переданными параметрами:
 	var url = $"http://{host}:{port}";
 	app.Urls.Add(url);
 

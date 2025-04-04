@@ -1,13 +1,10 @@
 ﻿using System.Net.Sockets;
 using System.Text;
 using servers_api.constants;
-using servers_api.enums;
 using servers_api.factory;
-using servers_api.models.entities;
+using servers_api.messaging.processing;
 using servers_api.models.internallayer.instance;
-using servers_api.models.outbox;
 using servers_api.models.response;
-using servers_api.repositories;
 
 
 namespace servers_api.api.streaming.tcp
@@ -15,20 +12,18 @@ namespace servers_api.api.streaming.tcp
 	public class TcpClientInstance : IUpClient
 	{
 		private readonly ILogger<TcpClientInstance> _logger;
-		private readonly IMongoRepository<OutboxMessage> _outboxRepository;
-		private readonly IMongoRepository<IncidentEntity> _incidentRepository;
+		private readonly IMessageProcessingService _messageProcessingService;
 		private CancellationTokenSource _cts;
 		private string _host;
 		private int _port;
 
 		public TcpClientInstance(
 			ILogger<TcpClientInstance> logger,
-			IMongoRepository<OutboxMessage> outboxRepository,
-			IMongoRepository<IncidentEntity> incidentRepository)
+			IMessageProcessingService messageProcessingService)
 		{
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			_outboxRepository = outboxRepository ?? throw new ArgumentNullException(nameof(outboxRepository));
-			_incidentRepository = incidentRepository ?? throw new ArgumentNullException(nameof(incidentRepository));
+			_messageProcessingService = messageProcessingService;
+
 		}
 
 		public Task<ResponseIntegration> ConnectToServerAsync(
@@ -83,66 +78,20 @@ namespace servers_api.api.streaming.tcp
 						string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 						_logger.LogInformation("Получено: {Message}", message);
 
-						await ProcessMessagesAsync(
-							message,
-							instanceModel.InQueueName,
-							instanceModel.OutQueueName);
+						_logger.LogInformation("Логирование сообщения: {Message}", message);
+						await _messageProcessingService.ProcessIncomingMessageAsync(
+							message: message,
+							instanceModelQueueInName: instanceModel.InQueueName,
+							instanceModelQueueOutName: instanceModel.OutQueueName,
+							host: _host,
+							port: _port,
+							protocol: "tcp");
 					}
 				}
 				catch (Exception ex)
 				{
 					_logger.LogError("Ошибка TCP-клиента: {Message}", ex.Message);
 				}
-			}
-		}
-
-		private async Task ProcessMessagesAsync(
-			string message,
-			string instanceModelQueueInName,
-			string instanceModelQueueOutName)
-		{
-			try
-			{
-				_logger.LogInformation("Логирование сообщения: {Message}", message);
-
-				// Сохранение полученного сообщения в Outbox
-				var outboxMessage = new OutboxMessage
-				{
-					Id = Guid.NewGuid().ToString(),
-					ModelType = ModelType.Outbox,
-					EventType = EventTypes.Received,
-					IsProcessed = false,
-					ProcessedAt = DateTime.Now,
-					InQueue = instanceModelQueueInName,
-					OutQueue = instanceModelQueueOutName,
-					Payload = message,
-					RoutingKey = "routing_key_tcp",
-					CreatedAt = DateTime.UtcNow,
-					CreatedAtFormatted = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
-					Source = $"tcp-client-instance based on host: {_host} and port {_port}"
-				};
-
-				await _outboxRepository.SaveMessageAsync(outboxMessage);
-
-				// Сохранение инцидента в базу данных
-				var incidentEntity = new IncidentEntity
-				{
-					Payload = message,
-					CreatedAtUtc = DateTime.UtcNow,
-					CreatedBy = "tcp-client-instance",
-					IpAddress = "127.0.0.1",
-					UserAgent = "tcp-client-instance",
-					CorrelationId = Guid.NewGuid().ToString(),
-					ModelType = "Incident",
-					IsProcessed = false
-				};
-
-				await _incidentRepository.SaveMessageAsync(incidentEntity);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("Ошибка при сохранении сообщения в базу данных.");
-				_logger.LogError(ex.Message);
 			}
 		}
 	}

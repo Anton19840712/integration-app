@@ -8,6 +8,7 @@
 		public static IServiceCollection AddHostedServices(this IServiceCollection services)
 		{
 			services.AddHostedService<QueueListenerBackgroundService>();
+			services.AddHostedService<OutboxMongoBackgroundService>();
 
 			return services;
 		}

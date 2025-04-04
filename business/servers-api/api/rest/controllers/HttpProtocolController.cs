@@ -95,4 +95,3 @@ public class HttpProtocolController : ControllerBase
 		return $"{companyName.Trim().ToLower()}-{postfix}-queue";
 	}
 }
-

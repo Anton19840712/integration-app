@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using FluentValidation.Results;
-using servers_api.models.internallayer.instance;
+using servers_api.models.dynamicgatesettings.internalusage;
 using servers_api.models.response;
 using servers_api.validation.common;
 

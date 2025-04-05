@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Serilog;
+using servers_api.listenersrabbit;
 using servers_api.models.configurationsettings;
-using servers_api.queuesconnections;
-using servers_api.services.brokers.bpmintegration;
+using servers_api.rabbitqueuesconnections;
 
 namespace servers_api.middleware
 {

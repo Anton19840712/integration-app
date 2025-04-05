@@ -1,4 +1,4 @@
-﻿using servers_api.models.configurationsettings;
+﻿using Newtonsoft.Json.Linq;
 
 namespace servers_api.middleware
 {
@@ -13,66 +13,82 @@ namespace servers_api.middleware
 		/// </summary>
 		public static (string HttpUrl, string HttpsUrl) ConfigureDynamicGate(string[] args, WebApplicationBuilder builder)
 		{
-			var port = GetArgument(args, "--port=", GetConfigValue(builder, "applicationUrl", 5000));
-			var host = GetArgument(args, "--host=", "localhost");
-			var enableValidation = GetArgument(args, "--validate=", true);
-			var companyName = GetArgument(args, "--company=", "default-company");
+			var configFilePath = args.FirstOrDefault(a => a.StartsWith("--config="))?.Substring(9) ?? "./configs/default.json";
+			var config = LoadConfiguration(configFilePath);
 
-			// Зафиксируем параметры в конфигурации:
+			var configType = config["type"]?.ToString()?.ToLowerInvariant();
+			return configType switch
+			{
+				"rest" => ConfigureRestGate(config, builder),
+				"stream" => ConfigureStreamGate(config, builder),
+				_ => throw new InvalidOperationException($"Неподдерживаемый тип конфигурации: {configType}")
+			};
+		}
+
+		/// <summary>
+		/// Настройка для конфигурации типа rest
+		/// </summary>
+		private static (string HttpUrl, string HttpsUrl) ConfigureRestGate(JObject config, WebApplicationBuilder builder)
+		{
+			var companyName = config["CompanyName"]?.ToString() ?? "default-company";
+			var host = config["Host"]?.ToString() ?? "localhost";
+			var port = int.TryParse(config["Port"]?.ToString(), out var p) ? p : 5000;
+			var enableValidation = bool.TryParse(config["Validate"]?.ToString(), out var v) && v;
+
 			builder.Configuration["CompanyName"] = companyName;
 			builder.Configuration["Host"] = host;
 			builder.Configuration["Port"] = port.ToString();
 			builder.Configuration["Validate"] = enableValidation.ToString();
 
-			builder.Services.Configure<CompanyMiddlewareSettings>(builder.Configuration);
-
-			// Формируем URL
-			var httpsPort = port + 1;
-			var httpUrl = $"http://{host}:{port}";
-			var httpsUrl = $"https://{host}:{httpsPort}";
-
+			var httpUrl = $"http://{host}:80";
+			var httpsUrl = $"https://{host}:443";
 			return (httpUrl, httpsUrl);
 		}
 
 		/// <summary>
-		/// Метод для парсинга аргументов командной строки
+		/// Настройка для конфигурации типа stream
 		/// </summary>
-		private static T GetArgument<T>(string[] args, string key, T defaultValue)
+		private static (string HttpUrl, string HttpsUrl) ConfigureStreamGate(JObject config, WebApplicationBuilder builder)
 		{
-			var arg = args.FirstOrDefault(a => a.StartsWith(key));
-			if (arg != null)
-			{
-				var value = arg.Substring(key.Length);
-				try
-				{
-					return (T)Convert.ChangeType(value, typeof(T));
-				}
-				catch
-				{
-					Console.WriteLine($"Ошибка при разборе аргумента {key}. Используется значение по умолчанию: {defaultValue}");
-				}
-			}
-			return defaultValue;
+			var protocol = config["protocol"]?.ToString() ?? "TCP";
+			var dataFormat = config["dataFormat"]?.ToString() ?? "json";
+			var companyName = config["companyName"]?.ToString() ?? "default-company";
+			var model = config["model"]?.ToString() ?? "{}";
+			var dataOptions = config["dataOptions"]?.ToString() ?? "{}";
+			var connectionSettings = config["connectionSettings"]?.ToString() ?? "{}";
+
+			builder.Configuration["Protocol"] = protocol;
+			builder.Configuration["DataFormat"] = dataFormat;
+			builder.Configuration["CompanyName"] = companyName;
+			builder.Configuration["Model"] = model;
+			builder.Configuration["DataOptions"] = dataOptions;
+			builder.Configuration["ConnectionSettings"] = connectionSettings;
+
+			var dataOptionsObj = JObject.Parse(dataOptions);
+			var serverDetails = dataOptionsObj["serverDetails"];
+
+			var host = serverDetails?["host"]?.ToString() ?? "localhost";
+			var port = int.TryParse(serverDetails?["port"]?.ToString(), out var p) ? p : 6254;
+
+			var httpUrl = $"http://{host}:80";
+			var httpsUrl = $"https://{host}:443";
+			return (httpUrl, httpsUrl);
 		}
 
 		/// <summary>
-		/// Метод для получения значения из конфигурации (например, из launchSettings.json)
+		/// Метод для загрузки конфигурации из JSON файла
 		/// </summary>
-		private static T GetConfigValue<T>(WebApplicationBuilder builder, string key, T defaultValue)
+		private static JObject LoadConfiguration(string configFilePath)
 		{
-			var configValue = builder.Configuration[key];
-			if (configValue != null)
+			try
 			{
-				try
-				{
-					return (T)Convert.ChangeType(configValue, typeof(T));
-				}
-				catch
-				{
-					Console.WriteLine($"Ошибка при разборе конфигурации по ключу {key}. Используется значение по умолчанию: {defaultValue}");
-				}
+				var json = File.ReadAllText(configFilePath);
+				return JObject.Parse(json);
 			}
-			return defaultValue;
+			catch (Exception ex)
+			{
+				throw new InvalidOperationException($"Ошибка при загрузке конфигурации из файла {configFilePath}: {ex.Message}");
+			}
 		}
 	}
 }

@@ -1,7 +1,6 @@
 using Serilog;
-using servers_api.api.rest.minimal.common;
 using servers_api.middleware;
-using servers_api.models.configurationsettings;
+using servers_api.models.dynamicgatesettings.parameters;
 
 Console.Title = "integration api";
 
@@ -45,7 +44,6 @@ static void ConfigureServices(WebApplicationBuilder builder)
 	services.AddMessageServingServices();
 	services.AddMongoDbServices(configuration);
 	services.AddMongoDbRepositoriesServices(configuration);
-	services.AddOutboxServices();
 	services.AddValidationServices();
 	services.AddHostedServices();
 	services.AddSftpServices(configuration);
@@ -54,19 +52,18 @@ static void ConfigureServices(WebApplicationBuilder builder)
 
 static void ConfigureApp(WebApplication app, string httpUrl, string httpsUrl)
 {
-	app.UseMiddleware<CompanyMiddlewareSettings>();
+	app.UseMiddleware<ParamsToContextSettings>();
 
 	app.Urls.Add(httpUrl);
 	app.Urls.Add(httpsUrl);
 	Log.Information($"Сервер запущен на {httpUrl} и {httpsUrl}");
 
 	app.UseSerilogRequestLogging();
-	app.UseCors(cors => cors.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+	app.UseCors(cors => cors.AllowAnyOrigin()
+							.AllowAnyMethod()
+							.AllowAnyHeader());
 
 	var factory = app.Services.GetRequiredService<ILoggerFactory>();
 
 	app.MapControllers();
-	app.MapIntegrationMinimalApi(factory);
-	app.MapAdminMinimalApi(factory);
-	app.MapTestMinimalApi(factory);
 }

@@ -3,7 +3,7 @@ using System.Text;
 using servers_api.constants;
 using servers_api.factory;
 using servers_api.messaging.processing;
-using servers_api.models.internallayer.instance;
+using servers_api.models.dynamicgatesettings.internalusage;
 using servers_api.models.response;
 
 

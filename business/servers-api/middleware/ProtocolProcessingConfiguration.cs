@@ -2,7 +2,7 @@
 using servers_api.api.streaming.udp;
 using servers_api.api.streaming.websockets;
 using servers_api.factory;
-using servers_api.main.services;
+using servers_api.services.teaching;
 
 namespace servers_api.middleware
 {

@@ -2,10 +2,10 @@
 using Newtonsoft.Json;
 using System.Xml;
 using servers_api.Services.Parsers;
-using servers_api.models.configurationsettings;
-using servers_api.models.internallayer.common;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using JsonException = System.Text.Json.JsonException;
+using servers_api.models.dynamicgatesettings.internalusage;
+using servers_api.models.dynamicgatesettings.incomingjson;
 
 public class JsonParsingService : IJsonParsingService
 {

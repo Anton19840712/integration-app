@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using servers_api.models.internallayer.instance;
+using servers_api.models.dynamicgatesettings.internalusage;
 using System.Net;
 
 namespace servers_api.validation.common

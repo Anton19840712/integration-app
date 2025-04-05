@@ -2,7 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 using servers_api.models.configurationsettings;
-using servers_api.models.entities;
+using servers_api.models.dynamicgatesettings.entities;
 using servers_api.models.outbox;
 using System.Linq.Expressions;
 

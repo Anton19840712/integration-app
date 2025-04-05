@@ -1,6 +1,6 @@
-﻿using servers_api.models.entities;
+﻿using servers_api.listenersrabbit;
+using servers_api.models.dynamicgatesettings.entities;
 using servers_api.repositories;
-using servers_api.services.brokers.bpmintegration;
 
 public class QueueListenerBackgroundService : BackgroundService
 {

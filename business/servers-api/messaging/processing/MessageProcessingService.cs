@@ -1,5 +1,5 @@
 ﻿using servers_api.enums;
-using servers_api.models.entities;
+using servers_api.models.dynamicgatesettings.entities;
 using servers_api.models.outbox;
 using servers_api.repositories;
 

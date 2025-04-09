@@ -1,0 +1,6 @@
+cd "D:\protei gateway\dynamic-gate-2\dynamicgate-main"
+
+Теперь из директории, где solution:
+
+dotnet run --project business/servers-api -- --config=./configs/rest.json
+dotnet run --project business/servers-api -- --config=./configs/stream.json

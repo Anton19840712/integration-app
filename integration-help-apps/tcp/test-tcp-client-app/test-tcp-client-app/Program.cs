@@ -50,7 +50,10 @@ public class TcpClientService : IHostedService
 					}
 
 					string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-					_logger.LogInformation($"Получено: {message}");
+					foreach (var line in message.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+					{
+						_logger.LogInformation($"[CLIENT] Получено: {line}");
+					}
 				}
 			}
 			catch (Exception ex)

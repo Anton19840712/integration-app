@@ -8,11 +8,11 @@ namespace servers_api.api.rest
 	[Route("api/teach")]
 	public class TeachController : ControllerBase
 	{
-		private readonly ILogger<StreamingRunnerController> _logger;
+		private readonly ILogger<TeachController> _logger;
 		private readonly ITeachIntegrationService _teachIntegrationService;
 
 		public TeachController(
-			ILogger<StreamingRunnerController> logger,
+			ILogger<TeachController> logger,
 			ITeachIntegrationService teachIntegrationService)
 		{
 			_logger = logger;

@@ -2,6 +2,7 @@
 using servers_api.messaging.processing;
 using servers_api.validation.headers;
 
+namespace servers_api.controllers;
 
 [ApiController]
 [Route("api/httpprotocol")]
@@ -10,56 +11,54 @@ public class HttpProtocolController : ControllerBase
 	private readonly ILogger<HttpProtocolController> _logger;
 	private readonly IHeaderValidationService _headerValidationService;
 	private readonly IMessageProcessingService _messageProcessingService;
+	private readonly IConfiguration _configuration;
 
-	/// <summary>
-	/// Конструктор
-	/// </summary>
-	/// <param name="serviceProvider"></param>
-	/// <param name="logger"></param>
-	/// <exception cref="ArgumentNullException"></exception>
 	public HttpProtocolController(
 		ILogger<HttpProtocolController> logger,
 		IHeaderValidationService headerValidationService,
-		IMessageProcessingService messageProcessingService)
+		IMessageProcessingService messageProcessingService,
+		IConfiguration configuration)
 	{
-		// проверка на зарегистрированность соответствующих сервисов для валидации headers:
+		_logger = logger;
 		_headerValidationService = headerValidationService;
 		_messageProcessingService = messageProcessingService;
-		_logger = logger;
+		_configuration = configuration;
 	}
 
 	[HttpPost("push")]
 	public async Task<IActionResult> PushMessage()
 	{
-		// Получаем параметры из HttpContext.Items:
-		string companyName = HttpContext.Items["CompanyName"]?.ToString() ?? "default-company-name-from-middleware";
-		string host = HttpContext.Items["Host"]?.ToString() ?? "localhost";
-		string port = HttpContext.Items["Port"]?.ToString() ?? "5000";
-		bool validate = (bool?)HttpContext.Items["Validate"] ?? false;
-
-		// Зачитываем, по какому протоколу происходил запрос:
-		// Получаем схему запроса (http или https)
+		string companyName = _configuration["CompanyName"] ?? "default-company";
+		string host = _configuration["Host"] ?? "localhost";
+		string port = _configuration["Port"] ?? "5000";
+		bool validate = bool.TryParse(_configuration["Validate"], out var v) && v;
 		string protocol = Request.Scheme;
 
-		// Формируем названия очередей:
-		string queueOut = GetQueueName(companyName, "out");
-		string queueIn = GetQueueName(companyName, "in");
+		_logger.LogInformation("Параметры шлюза: Company={Company}, Host={Host}, Port={Port}, Validate={Validate}, Protocol={Protocol}",
+			companyName, host, port, validate, protocol);
 
-		// Читаем сообщение, если получили запрос
+		string queueOut = $"{companyName.Trim().ToLower()}-out";
+		string queueIn = $"{companyName.Trim().ToLower()}-in";
+
 		var message = await new StreamReader(Request.Body).ReadToEndAsync();
 
-		// Устанавливаем заголовки для ответа:
 		Response.Headers.Append("Content-Type", "text/event-stream");
 		Response.Headers.Append("Cache-Control", "no-cache");
 		Response.Headers.Append("Connection", "keep-alive");
 		Response.Headers.Append("Access-Control-Allow-Origin", "*");
 
-		// Смотрим, валидны ли входящие заголовки:
-		var isValid = await _headerValidationService.ValidateHeadersAsync(Request.Headers);
-
-		if (!isValid)
+		if (validate)
 		{
-			_logger.LogWarning("Invalid headers.");
+			var isValid = await _headerValidationService.ValidateHeadersAsync(Request.Headers);
+			if (!isValid)
+			{
+				_logger.LogWarning("⚠️ Заголовки не прошли валидацию.");
+				return BadRequest("Заголовки не прошли валидацию.");
+			}
+		}
+		else
+		{
+			_logger.LogInformation("🟡 Валидация отключена.");
 		}
 
 		LogHeaders();
@@ -73,25 +72,15 @@ public class HttpProtocolController : ControllerBase
 			protocol
 		);
 
-		return Ok("✅ Валидация прошла, модель отправлена в шину и сохранена в БД.");
+		return Ok("✅ Модель отправлена в шину и сохранена в БД.");
 	}
 
-	// private methods:
-	// Функция для логирования заголовков запроса в консоль.
 	private void LogHeaders()
 	{
-		_logger.LogInformation("Headers Received:");
+		_logger.LogInformation("📥 Получены заголовки запроса:");
 		foreach (var header in Request.Headers)
 		{
 			_logger.LogInformation($"  {header.Key}: {header.Value}");
 		}
-	}
-	// Функция для формирования названия очереди:
-	private string GetQueueName(string companyName, string postfix)
-	{
-		// Убираем пробелы,
-		// переводим в нижний регистр
-		// добавляем постфикс:
-		return $"{companyName.Trim().ToLower()}-{postfix}-queue";
 	}
 }

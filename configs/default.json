@@ -27,7 +27,7 @@
   "connectionSettings": {
     "clientSettings": {
       "attemptsToFindExternalServer": 3,
-      "retryDelayMs": 5,
+      "retryDelayMs" : 5,
       "connectionTimeoutMs": 5000,
       "attemptsToFindBus": 3,
       "busResponseWaitTimeMs": 3000,
@@ -37,7 +37,7 @@
     },
     "serverSettings": {
       "attemptsToFindBus": 3,
-      "retryDelayMs": 5,
+      "retryDelayMs" : 5,
       "busResponseWaitTimeMs": 3000,
       "busProcessingTimeMs": 10000,
       "busReconnectDelayMs": 5000,

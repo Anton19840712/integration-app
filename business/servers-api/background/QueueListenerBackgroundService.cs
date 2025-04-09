@@ -15,7 +15,7 @@ public class QueueListenerBackgroundService : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		_logger.LogInformation("Запуск фонового сервиса прослушивания очередей.");
+		_logger.LogInformation("QueueListenerBackgroundService: запуск фонового сервиса прослушивания очередей.");
 
 		try
 		{
@@ -25,13 +25,22 @@ public class QueueListenerBackgroundService : BackgroundService
 
 			var elements = await queuesRepository.GetAllAsync();
 
+			if (elements == null || !elements.Any())
+			{
+				_logger.LogInformation("Нет конкретных очередей для прослушивания. Слушатели rabbit не будут запущены.");
+				return;
+			}
+
 			var listeningTasks = elements
 				.Select(element => Task.Run(() => queueListener.StartListeningAsync(element.OutQueueName, stoppingToken), stoppingToken))
 				.ToList();
 
 			await Task.WhenAll(listeningTasks);
 
-			_logger.LogInformation("Все слушатели запущены.");
+			foreach (var item in elements)
+			{
+				_logger.LogInformation($"Слушатель для очереди {item.OutQueueName} запущен.");
+			}
 		}
 		catch (Exception ex)
 		{

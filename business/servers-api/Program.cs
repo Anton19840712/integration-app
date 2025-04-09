@@ -1,6 +1,6 @@
 using Serilog;
+using servers_api.api.rest.test;
 using servers_api.middleware;
-using servers_api.models.dynamicgatesettings.parameters;
 
 Console.Title = "integration api";
 
@@ -8,14 +8,24 @@ var builder = WebApplication.CreateBuilder(args);
 
 LoggingConfiguration.ConfigureLogging(builder);
 
-var (httpUrl, httpsUrl) = GateConfiguration.ConfigureDynamicGate(args, builder);
+ConfigureServices(builder);
+
+builder.Services.AddSingleton<INetworkServer, TcpServer>();
+builder.Services.AddSingleton<NetworkServerManager>();
+builder.Services.AddHostedService<NetworkServerHostedService>();
+
+var app = builder.Build();
 
 try
 {
-	ConfigureServices(builder);
+	// Настройка динамического шлюза (через зарегистрированный сервис)
+	var gateConfigurator = app.Services.GetRequiredService<GateConfiguration>();
+	var (httpUrl, httpsUrl) = await gateConfigurator.ConfigureDynamicGateAsync(args, builder);
 
-	var app = builder.Build();
+	// Применяем настройки приложения
 	ConfigureApp(app, httpUrl, httpsUrl);
+
+	// Запускаем
 	await app.RunAsync();
 }
 catch (Exception ex)
@@ -32,7 +42,7 @@ static void ConfigureServices(WebApplicationBuilder builder)
 {
 	var services = builder.Services;
 	var configuration = builder.Configuration;
-	
+
 	services.AddControllers();
 	services.AddAutoMapper(typeof(MappingProfile));
 
@@ -48,22 +58,23 @@ static void ConfigureServices(WebApplicationBuilder builder)
 	services.AddHostedServices();
 	services.AddSftpServices(configuration);
 	services.AddHeadersServices();
+
+	// Регистрируем GateConfiguration
+	services.AddSingleton<GateConfiguration>();
 }
 
 static void ConfigureApp(WebApplication app, string httpUrl, string httpsUrl)
 {
-	app.UseMiddleware<ParamsToContextSettings>();
-
 	app.Urls.Add(httpUrl);
 	app.Urls.Add(httpsUrl);
-	Log.Information($"Сервер запущен на {httpUrl} и {httpsUrl}");
+	Log.Information($"Middleware: динамический шлюз запущен и принимает запросы на следующих точках: {httpUrl} и {httpsUrl}");
 
 	app.UseSerilogRequestLogging();
-	app.UseCors(cors => cors.AllowAnyOrigin()
-							.AllowAnyMethod()
-							.AllowAnyHeader());
 
-	var factory = app.Services.GetRequiredService<ILoggerFactory>();
+	app.UseCors(cors => cors
+		.AllowAnyOrigin()
+		.AllowAnyMethod()
+		.AllowAnyHeader());
 
 	app.MapControllers();
 }

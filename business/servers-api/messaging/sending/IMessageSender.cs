@@ -8,7 +8,7 @@ namespace servers_api.messaging.sending
 	public interface IMessageSender
 	{
 		Task SendMessagesToClientAsync(
-			TcpClient client,
+			TcpClient tcpClient,
 			string queueForListening,
 			CancellationToken cancellationToken);
 	}

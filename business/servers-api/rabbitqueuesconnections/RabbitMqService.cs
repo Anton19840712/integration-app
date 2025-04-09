@@ -35,7 +35,7 @@ namespace servers_api.rabbitqueuesconnections
 					{
 						_persistentConnection = _factory.CreateConnection();
 
-						_logger.LogInformation($"Попытка установления подключения к сетевой шине успешна.");
+						_logger.LogInformation("RabbitMqService: попытка установления подключения к сетевой шине успешна.");
 						return _persistentConnection;
 					}
 					catch (BrokerUnreachableException ex)

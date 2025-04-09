@@ -11,14 +11,15 @@ namespace servers_api.listenersrabbit
 
 		public RabbitMqQueueListener(IRabbitMqService rabbitMqService, ILogger<RabbitMqQueueListener> logger)
 		{
-			_connection = rabbitMqService.CreateConnection(); // Берем соединение из RabbitMqService
+			_connection = rabbitMqService.CreateConnection();
 			_logger = logger;
 		}
 
 		public async Task StartListeningAsync(
 			string queueOutName,
 			CancellationToken stoppingToken,
-			string pathForSave = null)
+			string pathForSave = null,
+			Func<string, Task> onMessageReceived = null) // <--- сюда можно передать обработку сообщений
 		{
 			_channel = _connection.CreateModel();
 
@@ -29,11 +30,21 @@ namespace servers_api.listenersrabbit
 			}
 
 			var consumer = new EventingBasicConsumer(_channel);
+
 			consumer.Received += async (model, ea) =>
 			{
 				var message = System.Text.Encoding.UTF8.GetString(ea.Body.ToArray());
+
 				_logger.LogInformation("Получено сообщение из {Queue}: {Message}", queueOutName, message);
-				await ProcessMessageAsync(message, queueOutName);
+
+				if (onMessageReceived != null)
+				{
+					await onMessageReceived(message);
+				}
+				else
+				{
+					await ProcessMessageAsync(message, queueOutName);
+				}
 			};
 
 			_logger.LogInformation("Подключен к очереди {Queue}. Ожидание сообщений...", queueOutName);

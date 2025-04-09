@@ -5,7 +5,8 @@
 		Task StartListeningAsync(
 			string queueOutName,
 			CancellationToken stoppingToken,
-			string pathForSave = null);
+			string pathToPushIn = null,
+			Func<string, Task> onMessageReceived = null);
 		void StopListening();
 	}
 }

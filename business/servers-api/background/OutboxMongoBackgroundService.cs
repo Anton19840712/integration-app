@@ -19,10 +19,11 @@ public class OutboxMongoBackgroundService : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken token)
 	{
-		_logger.LogInformation("Фоновый процесс по обработке сообщений из outbox table запущен.");
+		_logger.LogInformation("OutboxMongoBackgroundService: фоновый процесс по сканированию и отправке сообщений из outbox table запущен.");
 
 		//Параллельно запускаем фоновую очистку старых сообщений
 		_ = Task.Run(() => CleanupOldMessagesAsync(token), token);
+		_logger.LogInformation("OutboxMongoBackgroundService: фоновый процесс по ликвидации отправленных сообщений из outbox table запущен.");
 
 		while (!token.IsCancellationRequested)
 		{

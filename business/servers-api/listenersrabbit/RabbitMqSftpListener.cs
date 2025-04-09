@@ -32,9 +32,12 @@ namespace servers_api.listenersrabbit
 			_logger = logger;
 		}
 
-		public async Task StartListeningAsync(string queueOutName, CancellationToken cancellationToken, string pathForSave)
+		public async Task StartListeningAsync(
+			string queueOutName,
+			CancellationToken cancellationToken,
+			string pathToPushIn = null, Func<string, Task> onMessageReceived = null)
 		{
-			_pathForSave = pathForSave;
+			_pathForSave = pathToPushIn;
 			_cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
 			_connection = _connectionFactory.CreateConnection();
@@ -113,5 +116,6 @@ namespace servers_api.listenersrabbit
 				_logger.LogError(ex, "Ошибка при загрузке файла на SFTP.");
 			}
 		}
+
 	}
 }

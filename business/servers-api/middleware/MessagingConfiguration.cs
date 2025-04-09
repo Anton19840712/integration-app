@@ -11,7 +11,7 @@ namespace servers_api.middleware
 		/// </summary>
 		public static IServiceCollection AddMessageServingServices(this IServiceCollection services)
 		{
-			services.AddTransient<IMessageSender, MessageSender>();
+			services.AddScoped<IMessageSender, MessageSender>();
 			services.AddTransient<IMessageFormatter, MessageFormatter>();
 			services.AddTransient<IMessageProcessingService, MessageProcessingService>();
 

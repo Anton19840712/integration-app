@@ -21,6 +21,9 @@ public class HeaderValidationService : IHeaderValidationService
 		bool useDetailedValidation = headers.ContainsKey("X-Use-Detailed-Validation");
 		IHeadersValidator validator = useDetailedValidation ? _detailedValidator : _simpleValidator;
 
+		// Логируем тип используемого валидатора
+		_logger.LogInformation("Для валидации было использован валидатор вида: {ValidatorType}", validator.GetType().FullName);
+
 		var validationResult = await validator.ValidateHeadersAsync(headers);
 
 		if (!validationResult.Result)
@@ -32,4 +35,5 @@ public class HeaderValidationService : IHeaderValidationService
 		_logger.LogInformation("Валидация заголовков успешна.");
 		return true;
 	}
+
 }

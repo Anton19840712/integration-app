@@ -10,9 +10,6 @@ LoggingConfiguration.ConfigureLogging(builder);
 
 ConfigureServices(builder);
 
-builder.Services.AddSingleton<INetworkServer, TcpServer>();
-builder.Services.AddSingleton<NetworkServerManager>();
-builder.Services.AddHostedService<NetworkServerHostedService>();
 
 var app = builder.Build();
 
@@ -40,8 +37,20 @@ finally
 
 static void ConfigureServices(WebApplicationBuilder builder)
 {
-	var services = builder.Services;
+	
 	var configuration = builder.Configuration;
+
+	var services = builder.Services;
+	services.AddSingleton<INetworkServer, TcpNetworkServer>();
+	services.AddSingleton<INetworkClient, TcpNetworkClient>();
+
+	services.AddSingleton<INetworkServer, UdpNetworkServer>();
+	services.AddSingleton<INetworkClient, UdpNetworkClient>();
+
+	services.AddSingleton<NetworkServerManager>();
+	services.AddSingleton<NetworkClientManager>();
+
+	services.AddHostedService<NetworkServerHostedService>();
 
 	services.AddControllers();
 	services.AddAutoMapper(typeof(MappingProfile));

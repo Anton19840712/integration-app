@@ -4,11 +4,11 @@ namespace servers_api.api.rest.test
 {
 	[ApiController]
 	[Route("api/[controller]")]
-	public class ServerControlController : ControllerBase
+	public class ServerStreamController : ControllerBase
 	{
 		private readonly NetworkServerManager _manager;
 
-		public ServerControlController(NetworkServerManager manager)
+		public ServerStreamController(NetworkServerManager manager)
 		{
 			_manager = manager;
 		}

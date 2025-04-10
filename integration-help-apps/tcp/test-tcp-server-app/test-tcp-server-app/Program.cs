@@ -4,7 +4,7 @@ using System.Text;
 
 class Program
 {
-	const int Port = 6254;
+	const int Port = 5018;
 
 	static async Task Main()
 	{

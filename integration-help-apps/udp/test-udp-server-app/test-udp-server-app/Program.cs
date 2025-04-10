@@ -7,7 +7,7 @@ namespace UdpServerApp
     {
         static async Task Main(string[] args)
         {
-            int port = 6255;
+            int port = 5018;
             var udpServer = new UdpServer(port);
 
             Console.WriteLine($"Запуск UDP-сервера на порту {port}...");
@@ -45,53 +45,56 @@ namespace UdpServerApp
 
             Console.WriteLine($"UDP-сервер запущен на порту {_port}.");
 
-            try
-            {
-                while (!_cts.Token.IsCancellationRequested)
-                {
-                    var receiveTask = _udpServer.ReceiveAsync();
-                    var delayTask = Task.Delay(10000); // Ожидание нового сообщения 10 секунд
+			try
+			{
+				Console.WriteLine("Ожидание первого сообщения от клиента...");
 
-                    var completedTask = await Task.WhenAny(receiveTask, delayTask);
-                    if (completedTask == delayTask)
-                    {
-                        Console.WriteLine("Клиент не отвечает. Завершаем работу.");
-                        break;
-                    }
+				// Получаем первое сообщение от клиента
+				var result = await _udpServer.ReceiveAsync();
+				_lastClientMessageTime = DateTime.UtcNow;
 
-                    var result = await receiveTask;
-                    _lastClientMessageTime = DateTime.UtcNow;
+				string receivedMessage = Encoding.UTF8.GetString(result.Buffer);
+				Console.WriteLine($"Получено сообщение от клиента: {receivedMessage}");
 
-                    string receivedMessage = Encoding.UTF8.GetString(result.Buffer);
-                    Console.WriteLine($"Получено сообщение от клиента: {receivedMessage}");
+				var clientEndPoint = result.RemoteEndPoint;
 
-                    for (int i = 0; i < 10; i++)
-                    {
-                        string messageToSend = $"Сообщение {i + 1} от UDP-сервера";
-                        byte[] sendBytes = Encoding.UTF8.GetBytes(messageToSend);
-                        await _udpServer.SendAsync(sendBytes, sendBytes.Length, result.RemoteEndPoint);
+				// После первого сообщения начинаем бесконечно слать данные
+				int messageCounter = 1;
+				while (!_cts.Token.IsCancellationRequested)
+				{
+					string messageToSend = $"Сообщение {messageCounter++} от UDP-сервера";
+					byte[] sendBytes = Encoding.UTF8.GetBytes(messageToSend);
+					await _udpServer.SendAsync(sendBytes, sendBytes.Length, clientEndPoint);
 
-                        Console.WriteLine($"Отправлено сообщение: {messageToSend}");
-                        _lastClientMessageTime = DateTime.UtcNow; // ОБНОВЛЯЕМ таймстамп при отправке
+					Console.WriteLine($"Отправлено сообщение: {messageToSend}");
 
-                        var confirmTask = _udpServer.ReceiveAsync(); // Ждем подтверждение от клиента
-                        var timeoutTask = Task.Delay(5000); // 5 секунд на подтверждение
+					// Ждём ответ от клиента с таймаутом
+					var receiveTask = _udpServer.ReceiveAsync();
+					var timeoutTask = Task.Delay(5000);
 
-                        var response = await Task.WhenAny(confirmTask, timeoutTask);
-                        if (response == timeoutTask)
-                        {
-                            Console.WriteLine("Клиент не ответил на сообщение. Останавливаемся.");
-                            return;
-                        }
+					var completed = await Task.WhenAny(receiveTask, timeoutTask);
+					if (completed == receiveTask)
+					{
+						var clientResponse = await receiveTask;
+						string response = Encoding.UTF8.GetString(clientResponse.Buffer);
+						Console.WriteLine($"Получен ответ от клиента: {response}");
+					}
+					else
+					{
+						Console.WriteLine("Клиент не ответил на сообщение.");
+					}
 
-                        await Task.Delay(3000);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка: {ex.Message}");
-            }
+					await Task.Delay(3000, _cts.Token);
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				Console.WriteLine("Сервер остановлен по запросу.");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Ошибка в UDP-сервере: {ex.Message}");
+			}
             finally
             {
                 _udpServer?.Close();

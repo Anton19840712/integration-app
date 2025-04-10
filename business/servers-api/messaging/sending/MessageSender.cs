@@ -1,5 +1,8 @@
-﻿using System.Net.Sockets;
+﻿using System.Net;
+using System.Net.Sockets;
 using System.Text;
+using Microsoft.AspNetCore.Connections;
+using servers_api.api.rest.test;
 using servers_api.listenersrabbit;
 
 namespace servers_api.messaging.sending
@@ -18,6 +21,26 @@ namespace servers_api.messaging.sending
 		}
 
 		public async Task SendMessagesToClientAsync(
+			IConnectionContext connectionContext,
+			string queueForListening,
+			CancellationToken cancellationToken)
+		{
+			switch (connectionContext)
+			{
+				case TcpConnectionContext tcpContext:
+					await SendViaTcpAsync(tcpContext.TcpClient, queueForListening, cancellationToken);
+					break;
+
+				case UdpConnectionContext udpContext:
+					await SendViaUdpAsync(udpContext.UdpClient, udpContext.RemoteEndPoint, queueForListening, cancellationToken);
+					break;
+
+				default:
+					throw new NotSupportedException("Unsupported connection type.");
+			}
+		}
+
+		private async Task SendViaTcpAsync(
 			TcpClient tcpClient,
 			string queueForListening,
 			CancellationToken cancellationToken)
@@ -53,7 +76,39 @@ namespace servers_api.messaging.sending
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Ошибка в процессе получения сообщений из RabbitMQ.");
+				_logger.LogError(ex, "Ошибка в процессе отправки сообщений TCP-клиенту");
+			}
+		}
+
+		private async Task SendViaUdpAsync(
+			UdpClient udpClient,
+			IPEndPoint remoteEndPoint,
+			string queueForListening,
+			CancellationToken cancellationToken)
+		{
+			try
+			{
+				await _rabbitMqQueueListener.StartListeningAsync(
+					queueOutName: queueForListening,
+					stoppingToken: cancellationToken,
+					onMessageReceived: async message =>
+					{
+						try
+						{
+							byte[] data = Encoding.UTF8.GetBytes(message + "\n");
+							await udpClient.SendAsync(data, data.Length, remoteEndPoint);
+
+							_logger.LogInformation("Сообщение отправлено UDP-клиенту {RemoteEndPoint}: {Message}", remoteEndPoint, message);
+						}
+						catch (Exception ex)
+						{
+							_logger.LogError(ex, "Ошибка при отправке сообщения UDP-клиенту");
+						}
+					});
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Ошибка в процессе отправки сообщений UDP-клиенту");
 			}
 		}
 	}

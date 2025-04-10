@@ -13,7 +13,7 @@ namespace ConsoleApp1
 		static void Main(string[] args)
 		{
 			Console.Title = "Client";
-			udp.Connect("127.0.0.1", 888);
+			udp.Connect("127.0.0.1", 6254);
 
 			IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Any, 0);
 			// Отправка сообщения

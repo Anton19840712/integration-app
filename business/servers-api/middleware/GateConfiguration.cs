@@ -12,7 +12,6 @@ namespace servers_api.middleware;
 /// </summary>
 public class GateConfiguration
 {
-
 	/// <summary>
 	/// Настройка динамических параметров шлюза и возврат HTTP/HTTPS адресов
 	/// </summary>
@@ -52,14 +51,14 @@ public class GateConfiguration
 		return (httpUrl, httpsUrl);
 	}
 
-	private async Task<(string HttpUrl, string HttpsUrl)> ConfigureStreamGateAsync(JObject config, WebApplicationBuilder builder)
+	private async Task<(string HttpUrl, string HttpsUrl)> ConfigureStreamGateAsync(JObject jobjectConfig, WebApplicationBuilder builder)
 	{
-		var protocol = config["protocol"]?.ToString() ?? "TCP";
-		var dataFormat = config["dataFormat"]?.ToString() ?? "json";
-		var companyName = config["companyName"]?.ToString() ?? "default-company";
-		var model = config["model"]?.ToString() ?? "{}";
-		var dataOptions = config["dataOptions"]?.ToString() ?? "{}";
-		var connectionSettings = config["connectionSettings"]?.ToString() ?? "{}";
+		var protocol = jobjectConfig["protocol"]?.ToString() ?? "TCP";
+		var dataFormat = jobjectConfig["dataFormat"]?.ToString() ?? "json";
+		var companyName = jobjectConfig["companyName"]?.ToString() ?? "default-company";
+		var model = jobjectConfig["model"]?.ToString() ?? "{}";
+		var dataOptions = jobjectConfig["dataOptions"]?.ToString() ?? "{}";
+		var connectionSettings = jobjectConfig["connectionSettings"]?.ToString() ?? "{}";
 
 		builder.Configuration["Protocol"] = protocol;
 		builder.Configuration["DataFormat"] = dataFormat;
@@ -69,43 +68,44 @@ public class GateConfiguration
 		builder.Configuration["ConnectionSettings"] = connectionSettings;
 
 		var dataOptionsObj = JObject.Parse(dataOptions);
-		var serverDetails = dataOptionsObj["serverDetails"];
-		var host = serverDetails?["host"]?.ToString() ?? "localhost";
-		var port = int.TryParse(serverDetails?["port"]?.ToString(), out var p) ? p : 6254;
+		bool isClient = dataOptionsObj["client"]?.ToObject<bool>() ?? false;
+		bool isServer = dataOptionsObj["server"]?.ToObject<bool>() ?? false;
+
+		string host;
+		int port;
+
+		if (isServer)
+		{
+			var serverDetails = dataOptionsObj["serverDetails"];
+			host = serverDetails?["host"]?.ToString() ?? "localhost";
+			port = int.TryParse(serverDetails?["port"]?.ToString(), out var p) ? p : 6254;
+
+			builder.Configuration["Mode"] = "server";
+			builder.Configuration["host"] = host;
+			builder.Configuration["port"] = port.ToString();
+		}
+		else if (isClient)
+		{
+			var clientDetails = dataOptionsObj["clientDetails"];
+			host = clientDetails?["host"]?.ToString() ?? "localhost";
+			port = int.TryParse(clientDetails?["port"]?.ToString(), out var p) ? p : 5018;
+
+			// Добавим настройки клиента в конфигурацию
+			builder.Configuration["Mode"] = "client";
+			builder.Configuration["host"] = host;
+			builder.Configuration["port"] = port.ToString();
+		}
+		else
+		{
+			throw new InvalidOperationException("Не задан ни client, ни server в dataOptions.");
+		}
 
 		var httpUrl = $"http://{host}:80";
 		var httpsUrl = $"https://{host}:443";
 
-		var combinedModel = CreateCombinedModel(protocol, dataFormat, companyName, model, dataOptions, connectionSettings);
-
-		// 👇 Создаём и запускаем сервер:
-		var loggerFactory = builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-		var cts = new CancellationTokenSource();
-
 		return (httpUrl, httpsUrl);
 	}
-
-	private CombinedModel CreateCombinedModel(string protocol, string dataFormat, string company, string model,
-		string dataOptionsJson, string connectionSettingsJson)
-	{
-		var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-		var dataOptions = JsonSerializer.Deserialize<DataOptions>(dataOptionsJson, options);
-		var connectionSettings = JsonSerializer.Deserialize<ConnectionSettings>(connectionSettingsJson, options);
-
-		return new CombinedModel
-		{
-			Id = Guid.NewGuid().ToString(),
-			Protocol = protocol,
-			DataFormat = dataFormat,
-			InternalModel = model,
-			InQueueName = $"{company}_in",
-			OutQueueName = $"{company}_out",
-			DataOptions = dataOptions,
-			ConnectionSettings = connectionSettings
-		};
-	}
-
+	
 	private static JObject LoadConfiguration(string configFilePath)
 	{
 		try

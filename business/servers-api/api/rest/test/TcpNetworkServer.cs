@@ -1,13 +1,12 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using Newtonsoft.Json.Linq;
 using servers_api.messaging.sending;
 
 namespace servers_api.api.rest.test
 {
-	public class TcpServer : INetworkServer
+	public class TcpNetworkServer : INetworkServer
 	{
-		private readonly ILogger<TcpServer> _logger;
+		private readonly ILogger<TcpNetworkServer> _logger;
 		private CancellationTokenSource _cts;
 		private Task _serverTask;
 		private TcpListener _listener;
@@ -16,20 +15,16 @@ namespace servers_api.api.rest.test
 		private readonly string _outQueueName;
 		private readonly IServiceScopeFactory _scopeFactory;
 
-		public TcpServer(ILogger<TcpServer> logger, IServiceScopeFactory scopeFactory, IConfiguration configuration)
+		public TcpNetworkServer(
+			ILogger<TcpNetworkServer> logger,
+			IServiceScopeFactory scopeFactory,
+			IConfiguration configuration)
 		{
 			_logger = logger;
 			_scopeFactory = scopeFactory;
-			// Извлекаем строку DataOptions из конфигурации
-			var dataOptionsJson = configuration["DataOptions"] ?? "{}";
 
-			// Парсим строку DataOptions как JSON
-			var dataOptionsObj = JObject.Parse(dataOptionsJson);
-
-			// Извлекаем serverDetails
-			var serverDetails = dataOptionsObj["serverDetails"];
-			_host = serverDetails?["host"]?.ToString() ?? "localhost";  // Значение по умолчанию
-			_port = int.TryParse(serverDetails?["port"]?.ToString(), out var p) ? p : 6254;  // Значение по умолчанию
+			_host = configuration?["host"]?.ToString() ?? "localhost";  // Значение по умолчанию
+			_port = int.TryParse(configuration?["port"]?.ToString(), out var p) ? p : 6254;  // Значение по умолчанию
 			_outQueueName = (configuration["CompanyName"] ?? "defaultCompany") + "_out";
 		}
 
@@ -120,10 +115,12 @@ namespace servers_api.api.rest.test
 				using var scope = _scopeFactory.CreateScope();
 				var messageSender = scope.ServiceProvider.GetRequiredService<IMessageSender>();
 
+				var context = new TcpConnectionContext(client);
+
 				await messageSender.SendMessagesToClientAsync(
-						tcpClient: client,
-						queueForListening: _outQueueName,
-						cancellationToken: token);
+					connectionContext: context,
+					queueForListening: _outQueueName,
+					cancellationToken: token);
 			}
 			catch (Exception ex)
 			{

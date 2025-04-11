@@ -1,5 +1,8 @@
 using Serilog;
-using servers_api.api.rest.test;
+using servers_api.api.rest.test.background;
+using servers_api.api.rest.test.clients;
+using servers_api.api.rest.test.core;
+using servers_api.api.rest.test.servers;
 using servers_api.middleware;
 
 Console.Title = "integration api";
@@ -46,6 +49,9 @@ static void ConfigureServices(WebApplicationBuilder builder)
 
 	services.AddSingleton<INetworkServer, UdpNetworkServer>();
 	services.AddSingleton<INetworkClient, UdpNetworkClient>();
+
+	services.AddSingleton<INetworkServer, WebSocketNetworkServer>();
+	services.AddSingleton<INetworkClient, WebSocketNetworkClient>();
 
 	services.AddSingleton<NetworkServerManager>();
 	services.AddSingleton<NetworkClientManager>();

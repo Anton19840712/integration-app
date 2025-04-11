@@ -2,7 +2,7 @@
 using System.Text;
 using servers_api.messaging.processing;
 
-namespace servers_api.api.rest.test
+namespace servers_api.api.rest.test.clients
 {
 	public class UdpNetworkClient : INetworkClient
 	{

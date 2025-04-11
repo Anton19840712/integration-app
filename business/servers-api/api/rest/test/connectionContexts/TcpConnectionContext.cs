@@ -1,6 +1,6 @@
 ﻿using System.Net.Sockets;
 
-namespace servers_api.api.rest.test
+namespace servers_api.api.rest.test.connectionContexts
 {
 	public class TcpConnectionContext : IConnectionContext
 	{

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using servers_api.api.rest.test.core;
 
-namespace servers_api.api.rest.test
+namespace servers_api.api.rest.test.controllers
 {
 	[ApiController]
 	[Route("api/[controller]")]

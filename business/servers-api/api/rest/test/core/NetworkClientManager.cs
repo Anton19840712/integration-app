@@ -1,5 +1,8 @@
-﻿namespace servers_api.api.rest.test
+﻿using servers_api.api.rest.test.clients;
+
+namespace servers_api.api.rest.test.core
 {
+	// 2
 	public class NetworkClientManager
 	{
 		private readonly IEnumerable<INetworkClient> _clients;

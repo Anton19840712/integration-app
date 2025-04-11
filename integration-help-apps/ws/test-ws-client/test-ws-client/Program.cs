@@ -7,13 +7,13 @@ class WebSocketClient
 	public static async Task Main(string[] args)
 	{
 		string host = "localhost";
-		int port = 5000;
+		int port = 6254;
 
 		using (var client = new ClientWebSocket())
 		{
 			try
 			{
-				var uri = new Uri($"ws://{host}:{port}/");
+				var uri = new Uri($"ws://{host}:{port}/ws");
 				Console.WriteLine($"Подключение к {uri}...");
 
 				await client.ConnectAsync(uri, CancellationToken.None);
@@ -46,9 +46,22 @@ class WebSocketClient
 
 	private static async Task ReceiveMessagesAsync(ClientWebSocket client)
 	{
-		byte[] buffer = new byte[1024];
-		var result = await client.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-		string response = Encoding.UTF8.GetString(buffer, 0, result.Count);
-		Console.WriteLine($"Получено: {response}");
+		byte[] buffer = new byte[4096];
+
+		while (client.State == WebSocketState.Open)
+		{
+			var result = await client.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+			if (result.MessageType == WebSocketMessageType.Close)
+			{
+				Console.WriteLine("Сервер закрыл соединение.");
+				await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "Закрытие клиентом", CancellationToken.None);
+			}
+			else
+			{
+				var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+				Console.WriteLine($"Получено: {message}");
+			}
+		}
 	}
 }

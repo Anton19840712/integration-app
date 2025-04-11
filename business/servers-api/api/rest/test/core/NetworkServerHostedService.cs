@@ -1,5 +1,8 @@
-﻿namespace servers_api.api.rest.test
+﻿using servers_api.api.rest.test.core;
+
+namespace servers_api.api.rest.test.background
 {
+	//1
 	public class NetworkServerHostedService : BackgroundService
 	{
 		private readonly ILogger<NetworkServerHostedService> _logger;
@@ -21,6 +24,7 @@
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
+			// читаем из конфигурации параметр протокола:
 			var protocol = _configuration["Protocol"]?.ToLowerInvariant();
 			var mode = _configuration["Mode"]?.ToLowerInvariant(); // client или server
 
@@ -34,6 +38,8 @@
 			{
 				case "server":
 					_logger.LogInformation($"Автозапуск сервера: {protocol}");
+
+					// передаем название протокола:
 					await _serverManager.StartServerAsync(protocol, stoppingToken);
 					break;
 

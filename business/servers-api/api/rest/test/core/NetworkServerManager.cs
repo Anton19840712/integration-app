@@ -1,5 +1,8 @@
-﻿namespace servers_api.api.rest.test
+﻿using servers_api.api.rest.test.servers;
+
+namespace servers_api.api.rest.test.core
 {
+	// 2
 	public class NetworkServerManager
 	{
 		private readonly IEnumerable<INetworkServer> _servers;
@@ -10,6 +13,9 @@
 			_servers = servers;
 		}
 
+		// при передаче сюда названия протокола,
+		// выбирается соответствующий по названию из реализаций INetworkServer и таким образом запускается.
+		// один из минусов решения, что хардкодятся названия протоколов при такой реализации.
 		public async Task StartServerAsync(string protocol, CancellationToken cancellationToken)
 		{
 			if (_runningServers.ContainsKey(protocol)) return;

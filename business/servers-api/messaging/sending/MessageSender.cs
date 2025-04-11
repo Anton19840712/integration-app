@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Text;
-using Microsoft.AspNetCore.Connections;
-using servers_api.api.rest.test;
+using servers_api.api.rest.test.connectionContexts;
 using servers_api.listenersrabbit;
 
 namespace servers_api.messaging.sending
@@ -33,6 +33,10 @@ namespace servers_api.messaging.sending
 
 				case UdpConnectionContext udpContext:
 					await SendViaUdpAsync(udpContext.UdpClient, udpContext.RemoteEndPoint, queueForListening, cancellationToken);
+					break;
+
+				case WebSocketConnectionContext webSocketContext:
+					await SendViaSocketAsync(webSocketContext.Socket, queueForListening, cancellationToken);
 					break;
 
 				default:
@@ -109,6 +113,41 @@ namespace servers_api.messaging.sending
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, "Ошибка в процессе отправки сообщений UDP-клиенту");
+			}
+		}
+
+		private async Task SendViaSocketAsync(
+			WebSocket socket,
+			string queueForListening,
+			CancellationToken cancellationToken)
+		{
+			try
+			{
+				await _rabbitMqQueueListener.StartListeningAsync(
+					queueOutName: queueForListening,
+					stoppingToken: cancellationToken,
+					onMessageReceived: async message =>
+					{
+						try
+						{
+							var buffer = Encoding.UTF8.GetBytes(message + "\n");
+							await socket.SendAsync(
+								new ArraySegment<byte>(buffer),
+								WebSocketMessageType.Text,
+								endOfMessage: true,
+								cancellationToken);
+
+							_logger.LogInformation("Сообщение отправлено WebSocket-клиенту: {Message}", message);
+						}
+						catch (Exception ex)
+						{
+							_logger.LogError(ex, "Ошибка при отправке сообщения WebSocket-клиенту");
+						}
+					});
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Ошибка в процессе отправки сообщений WebSocket-клиенту");
 			}
 		}
 	}

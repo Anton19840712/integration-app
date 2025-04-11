@@ -1,4 +1,4 @@
-﻿namespace servers_api.api.rest.test
+﻿namespace servers_api.api.rest.test.clients
 {
 	public interface INetworkClient
 	{

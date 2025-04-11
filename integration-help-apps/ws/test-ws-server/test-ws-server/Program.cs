@@ -73,7 +73,7 @@ class Program
 					Console.WriteLine($"Получено сообщение от клиента: {message}");
 
 					// Пример ответа
-					string responseMessage = $"Принято: {message}";
+					string responseMessage = $"Сервер ws принял сообщение от ws клиента: {message}";
 					byte[] responseBytes = Encoding.UTF8.GetBytes(responseMessage);
 					await webSocket.SendAsync(new ArraySegment<byte>(responseBytes), WebSocketMessageType.Text, true, CancellationToken.None);
 					Console.WriteLine($"Отправлен ответ: {responseMessage}");

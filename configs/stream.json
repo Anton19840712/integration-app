@@ -1,6 +1,6 @@
 {
   "type": "stream",
-  "protocol": "UDP",
+  "protocol": "websocket",
   "dataFormat": "json",
   "companyName": "corporation",
   "model": {
@@ -13,15 +13,15 @@
     }
   },
   "dataOptions": {
-    "client": false,
-    "server": true,
+    "client": true,
+    "server": false,
     "serverDetails": {
       "host": "127.0.0.1",
       "port": 6254
     },
     "clientDetails": {
       "host": "127.0.0.1",
-      "port": 5018
+      "port": 5001
     }
   },
   "connectionSettings": {

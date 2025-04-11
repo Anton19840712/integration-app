@@ -1,9 +1,10 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using servers_api.api.rest.test.connectionContexts;
 using servers_api.messaging.sending;
 
-namespace servers_api.api.rest.test
+namespace servers_api.api.rest.test.servers
 {
 	public class UdpNetworkServer : INetworkServer
 	{

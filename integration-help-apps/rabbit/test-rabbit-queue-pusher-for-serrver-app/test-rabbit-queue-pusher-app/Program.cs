@@ -6,7 +6,7 @@ class Program
 {
 	private const string RabbitMqHost = "localhost"; // Хост RabbitMQ
 	private const string QueueName = "corporation_out"; // Название очереди
-	private static readonly TimeSpan SendInterval = TimeSpan.FromSeconds(2); // Интервал отправки
+	private static readonly TimeSpan SendInterval = TimeSpan.FromMilliseconds(500); // Интервал отправки
 
 	static async Task Main()
 	{

@@ -1,5 +1,6 @@
 ﻿using servers_api.api.rest.test.connectionContexts;
-using servers_api.messaging.sending;
+using servers_api.messaging.sending.abstractions;
+using servers_api.messaging.sending.main;
 
 public class MessageSender : IMessageSender
 {

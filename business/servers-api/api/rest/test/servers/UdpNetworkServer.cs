@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using System.Text;
 using servers_api.api.rest.test.connectionContexts;
-using servers_api.messaging.sending;
+using servers_api.messaging.sending.main;
 
 namespace servers_api.api.rest.test.servers
 {

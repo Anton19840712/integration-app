@@ -1,4 +1,4 @@
-﻿namespace servers_api.messaging.sending
+﻿namespace servers_api.messaging.sending.abstractions
 {
 	public interface IConnectionMessageSender
 	{

@@ -1,6 +1,6 @@
 ﻿using servers_api.messaging.formatting;
 using servers_api.messaging.processing;
-using servers_api.messaging.sending;
+using servers_api.messaging.sending.main;
 
 namespace servers_api.middleware
 {

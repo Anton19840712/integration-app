@@ -1,7 +1,8 @@
 ﻿using servers_api.api.rest.test.connectionContexts;
 using servers_api.listenersrabbit;
+using servers_api.messaging.sending.senders;
 
-namespace servers_api.messaging.sending
+namespace servers_api.messaging.sending.abstractions
 {
 	public class ConnectionMessageSenderFactory
 	{

@@ -3,7 +3,7 @@ using servers_api.api.rest.test.background;
 using servers_api.api.rest.test.clients;
 using servers_api.api.rest.test.core;
 using servers_api.api.rest.test.servers;
-using servers_api.messaging.sending;
+using servers_api.messaging.sending.abstractions;
 using servers_api.middleware;
 
 Console.Title = "integration api";

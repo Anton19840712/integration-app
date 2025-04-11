@@ -1,6 +1,6 @@
 {
   "type": "stream",
-  "protocol": "UDP",
+  "protocol": "TCP",
   "dataFormat": "json",
   "companyName": "corporation",
   "model": {

@@ -8,14 +8,14 @@ using System.Security.Cryptography;
 
 [ApiController]
 [Route("api/sftp")]
-public class SftpController : ControllerBase
+public class SftpProtocolController : ControllerBase
 {
 	private readonly IRabbitMqService _rabbitMqService;
-	private readonly ILogger<SftpController> _logger;
+	private readonly ILogger<SftpProtocolController> _logger;
 	private readonly FileHashService _fileHashService;
-	public SftpController(
+	public SftpProtocolController(
 		IRabbitMqService rabbitMqService,
-		ILogger<SftpController> logger,
+		ILogger<SftpProtocolController> logger,
 		FileHashService fileHashService,
 		IOptions<SftpSettings> sftpSettings)
 	{

@@ -1,7 +1,7 @@
 ﻿using System.Net.Sockets;
 using System.Net;
 
-namespace servers_api.api.rest.test.connectionContexts
+namespace servers_api.api.streaming.connectionContexts
 {
 	public class UdpConnectionContext : IConnectionContext
 	{

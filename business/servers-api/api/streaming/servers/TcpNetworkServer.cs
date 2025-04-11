@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using servers_api.api.rest.test.connectionContexts;
+using servers_api.api.streaming.connectionContexts;
 using servers_api.messaging.sending.main;
 
-namespace servers_api.api.rest.test.servers
+namespace servers_api.api.streaming.servers
 {
 	public class TcpNetworkServer : INetworkServer
 	{

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using servers_api.services.teaching;
 
-namespace servers_api.api.rest
+namespace servers_api.api.rest.functional.organizers
 {
 	[ApiController]
 	[Route("api/teach")]

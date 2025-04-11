@@ -1,4 +1,4 @@
-﻿namespace servers_api.api.rest.test.servers
+﻿namespace servers_api.api.streaming.servers
 {
 	public interface INetworkServer
 	{

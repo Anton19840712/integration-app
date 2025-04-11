@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using servers_api.api.rest.test.core;
+using servers_api.api.streaming.core;
 
-namespace servers_api.api.rest.test.controllers
+namespace servers_api.api.rest.functional.stopstartnodes
 {
 	[ApiController]
 	[Route("api/[controller]")]

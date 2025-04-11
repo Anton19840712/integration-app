@@ -1,4 +1,4 @@
-﻿namespace servers_api.api.rest.test.connectionContexts
+﻿namespace servers_api.api.streaming.connectionContexts
 {
 	public interface IConnectionContext
 	{

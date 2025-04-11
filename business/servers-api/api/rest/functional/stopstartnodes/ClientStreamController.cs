@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using servers_api.api.rest.test.core;
+using servers_api.api.streaming.core;
 
-namespace servers_api.api.rest.test.controllers
+namespace servers_api.api.rest.functional.stopstartnodes
 {
 	[ApiController]
 	[Route("api/[controller]")]
-	public class ClientStreamControlController : ControllerBase
+	public class ClientStreamController : ControllerBase
 	{
 		private readonly NetworkClientManager _manager;
 
-		public ClientStreamControlController(NetworkClientManager manager)
+		public ClientStreamController(NetworkClientManager manager)
 		{
 			_manager = manager;
 		}

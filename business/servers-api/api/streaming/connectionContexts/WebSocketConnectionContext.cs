@@ -1,6 +1,6 @@
 ﻿using System.Net.WebSockets;
 
-namespace servers_api.api.rest.test.connectionContexts
+namespace servers_api.api.streaming.connectionContexts
 {
 	public class WebSocketConnectionContext : IConnectionContext
 	{

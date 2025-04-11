@@ -1,6 +1,4 @@
-﻿using servers_api.api.rest.test.core;
-
-namespace servers_api.api.rest.test.background
+﻿namespace servers_api.api.streaming.core
 {
 	//1
 	public class NetworkServerHostedService : BackgroundService

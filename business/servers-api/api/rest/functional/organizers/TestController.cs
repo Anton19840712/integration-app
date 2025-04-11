@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace servers_api.api.rest
+namespace servers_api.api.rest.functional.organizers
 {
 	[ApiController]
 	[Route("api/test")]

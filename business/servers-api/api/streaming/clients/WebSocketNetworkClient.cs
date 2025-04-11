@@ -2,7 +2,7 @@
 using System.Net.WebSockets;
 using System.Text;
 
-namespace servers_api.api.rest.test.clients
+namespace servers_api.api.streaming.clients
 {
 	public class WebSocketNetworkClient : INetworkClient
 	{

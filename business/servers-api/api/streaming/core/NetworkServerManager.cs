@@ -1,6 +1,6 @@
-﻿using servers_api.api.rest.test.servers;
+﻿using servers_api.api.streaming.servers;
 
-namespace servers_api.api.rest.test.core
+namespace servers_api.api.streaming.core
 {
 	// 2
 	public class NetworkServerManager

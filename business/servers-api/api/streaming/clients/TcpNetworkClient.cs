@@ -1,4 +1,4 @@
-﻿using servers_api.api.rest.test.clients;
+﻿using servers_api.api.streaming.clients;
 using servers_api.messaging.processing;
 using System.Net.Sockets;
 using System.Text;

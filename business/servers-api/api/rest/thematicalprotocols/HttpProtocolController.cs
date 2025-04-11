@@ -2,7 +2,7 @@
 using servers_api.messaging.processing;
 using servers_api.validation.headers;
 
-namespace servers_api.controllers;
+namespace servers_api.api.rest.thematicalprotocols;
 
 [ApiController]
 [Route("api/httpprotocol")]

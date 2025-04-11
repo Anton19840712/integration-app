@@ -1,4 +1,4 @@
-﻿using servers_api.api.rest.test.connectionContexts;
+﻿using servers_api.api.streaming.connectionContexts;
 
 namespace servers_api.messaging.sending.main
 {

@@ -77,7 +77,7 @@ public class HttpProtocolController : ControllerBase
 
 	private void LogHeaders()
 	{
-		_logger.LogInformation("📥 Получены заголовки запроса:");
+		_logger.LogInformation("Получены заголовки запроса:");
 		foreach (var header in Request.Headers)
 		{
 			_logger.LogInformation($"  {header.Key}: {header.Value}");

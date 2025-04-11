@@ -64,8 +64,6 @@ namespace servers_api.api.rest.test.clients
 					await client.SendAsync(new ArraySegment<byte>(helloBytes), WebSocketMessageType.Text, true, token);
 					_logger.LogInformation("[WS Client] Отправлено сообщение: {Message}", helloMessage);
 
-
-
 					var buffer = new byte[1024];
 					attempt = 0;
 

@@ -3,6 +3,7 @@ using servers_api.api.rest.test.background;
 using servers_api.api.rest.test.clients;
 using servers_api.api.rest.test.core;
 using servers_api.api.rest.test.servers;
+using servers_api.messaging.sending;
 using servers_api.middleware;
 
 Console.Title = "integration api";
@@ -57,6 +58,7 @@ static void ConfigureServices(WebApplicationBuilder builder)
 	services.AddSingleton<NetworkClientManager>();
 
 	services.AddHostedService<NetworkServerHostedService>();
+	services.AddScoped<ConnectionMessageSenderFactory>();
 
 	services.AddControllers();
 	services.AddAutoMapper(typeof(MappingProfile));

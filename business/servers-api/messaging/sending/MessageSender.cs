@@ -1,154 +1,21 @@
-﻿using System.Net;
-using System.Net.Sockets;
-using System.Net.WebSockets;
-using System.Text;
-using servers_api.api.rest.test.connectionContexts;
-using servers_api.listenersrabbit;
+﻿using servers_api.api.rest.test.connectionContexts;
+using servers_api.messaging.sending;
 
-namespace servers_api.messaging.sending
+public class MessageSender : IMessageSender
 {
-	public class MessageSender : IMessageSender
+	private readonly ConnectionMessageSenderFactory _senderFactory;
+
+	public MessageSender(ConnectionMessageSenderFactory senderFactory)
 	{
-		private readonly IRabbitMqQueueListener<RabbitMqQueueListener> _rabbitMqQueueListener;
-		private readonly ILogger<MessageSender> _logger;
+		_senderFactory = senderFactory;
+	}
 
-		public MessageSender(
-			IRabbitMqQueueListener<RabbitMqQueueListener> rabbitMqQueueListener,
-			ILogger<MessageSender> logger)
-		{
-			_rabbitMqQueueListener = rabbitMqQueueListener;
-			_logger = logger;
-		}
-
-		public async Task SendMessagesToClientAsync(
-			IConnectionContext connectionContext,
-			string queueForListening,
-			CancellationToken cancellationToken)
-		{
-			switch (connectionContext)
-			{
-				case TcpConnectionContext tcpContext:
-					await SendViaTcpAsync(tcpContext.TcpClient, queueForListening, cancellationToken);
-					break;
-
-				case UdpConnectionContext udpContext:
-					await SendViaUdpAsync(udpContext.UdpClient, udpContext.RemoteEndPoint, queueForListening, cancellationToken);
-					break;
-
-				case WebSocketConnectionContext webSocketContext:
-					await SendViaSocketAsync(webSocketContext.Socket, queueForListening, cancellationToken);
-					break;
-
-				default:
-					throw new NotSupportedException("Unsupported connection type.");
-			}
-		}
-
-		private async Task SendViaTcpAsync(
-			TcpClient tcpClient,
-			string queueForListening,
-			CancellationToken cancellationToken)
-		{
-			try
-			{
-				var stream = tcpClient.GetStream();
-
-				await _rabbitMqQueueListener.StartListeningAsync(
-					queueOutName: queueForListening,
-					stoppingToken: cancellationToken,
-					onMessageReceived: async message =>
-					{
-						try
-						{
-							if (tcpClient.Client.Poll(0, SelectMode.SelectRead) && tcpClient.Client.Available == 0)
-							{
-								_logger.LogWarning("TCP-клиент отключился (низкоуровневая проверка).");
-								return;
-							}
-
-							byte[] data = Encoding.UTF8.GetBytes(message + "\n");
-							await stream.WriteAsync(data, 0, data.Length, cancellationToken);
-							await stream.FlushAsync(cancellationToken);
-
-							_logger.LogInformation("Сообщение отправлено TCP-клиенту: {Message}", message);
-						}
-						catch (Exception ex)
-						{
-							_logger.LogError(ex, "Ошибка при отправке сообщения TCP-клиенту");
-						}
-					});
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Ошибка в процессе отправки сообщений TCP-клиенту");
-			}
-		}
-
-		private async Task SendViaUdpAsync(
-			UdpClient udpClient,
-			IPEndPoint remoteEndPoint,
-			string queueForListening,
-			CancellationToken cancellationToken)
-		{
-			try
-			{
-				await _rabbitMqQueueListener.StartListeningAsync(
-					queueOutName: queueForListening,
-					stoppingToken: cancellationToken,
-					onMessageReceived: async message =>
-					{
-						try
-						{
-							byte[] data = Encoding.UTF8.GetBytes(message + "\n");
-							await udpClient.SendAsync(data, data.Length, remoteEndPoint);
-
-							_logger.LogInformation("Сообщение отправлено UDP-клиенту {RemoteEndPoint}: {Message}", remoteEndPoint, message);
-						}
-						catch (Exception ex)
-						{
-							_logger.LogError(ex, "Ошибка при отправке сообщения UDP-клиенту");
-						}
-					});
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Ошибка в процессе отправки сообщений UDP-клиенту");
-			}
-		}
-
-		private async Task SendViaSocketAsync(
-			WebSocket socket,
-			string queueForListening,
-			CancellationToken cancellationToken)
-		{
-			try
-			{
-				await _rabbitMqQueueListener.StartListeningAsync(
-					queueOutName: queueForListening,
-					stoppingToken: cancellationToken,
-					onMessageReceived: async message =>
-					{
-						try
-						{
-							var buffer = Encoding.UTF8.GetBytes(message + "\n");
-							await socket.SendAsync(
-								new ArraySegment<byte>(buffer),
-								WebSocketMessageType.Text,
-								endOfMessage: true,
-								cancellationToken);
-
-							_logger.LogInformation("Сообщение отправлено WebSocket-клиенту: {Message}", message);
-						}
-						catch (Exception ex)
-						{
-							_logger.LogError(ex, "Ошибка при отправке сообщения WebSocket-клиенту");
-						}
-					});
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Ошибка в процессе отправки сообщений WebSocket-клиенту");
-			}
-		}
+	public async Task SendMessagesToClientAsync(
+		IConnectionContext connectionContext,
+		string queueForListening,
+		CancellationToken cancellationToken)
+	{
+		var sender = _senderFactory.CreateSender(connectionContext);
+		await sender.SendMessageAsync(queueForListening, cancellationToken);
 	}
 }

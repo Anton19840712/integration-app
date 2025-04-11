@@ -1,8 +1,4 @@
-﻿using System.Text.Json;
-using Newtonsoft.Json.Linq;
-using servers_api.api.rest.test;
-using servers_api.models.dynamicgatesettings.incomingjson;
-using servers_api.models.dynamicgatesettings.internalusage;
+﻿using Newtonsoft.Json.Linq;
 
 namespace servers_api.middleware;
 

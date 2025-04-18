@@ -46,7 +46,7 @@ namespace WebApplicationRTSPSample
 				return;
 			}
 
-			// string rtspUrl = $"rtsp://{_settings.Username}:{_settings.Password}@{_settings.NvrIp}:{_settings.Port}/unicast/c{channel}/s{streamType}/live";
+			//string rtspUrl = $"rtsp://{_settings.Username}:{_settings.Password}@{_settings.NvrIp}:{_settings.Port}/unicast/c{channel}/s{streamType}/live";
 			//rtsp://41145:Sonali%4041145@10.98.142.250:8554/unicast/c1/s0/live
 			//rtsp://41145:Sonali%4041145@10.98.142.250:8554/unicast/c2/s0/live
 

@@ -58,15 +58,6 @@ namespace servers_api.services.teaching
 					parsedCombinedModel,
 					stoppingToken);
 
-				//if (apiStatus.Result)
-				//{
-					//4
-					//logger.LogInformation("Запускаем слушателя в фоне для очереди: {Queue}.", parsedCombinedModel.OutQueueName);
-					//await queueListener.StartListeningAsync(
-					//parsedCombinedModel.OutQueueName,
-					//stoppingToken);
-				//}
-
 				return [
 					apiStatus,
 					new ResponseIntegration {

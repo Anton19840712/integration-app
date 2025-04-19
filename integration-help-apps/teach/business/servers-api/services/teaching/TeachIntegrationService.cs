@@ -1,7 +1,7 @@
-﻿using servers_api.listenersrabbit;
-using servers_api.models.dynamicgatesettings.entities;
+﻿using servers_api.models.dynamicgatesettings.entities;
 using servers_api.models.response;
 using servers_api.repositories;
+using servers_api.services.senders;
 
 namespace servers_api.services.teaching
 {
@@ -12,7 +12,7 @@ namespace servers_api.services.teaching
 	public class TeachIntegrationService(
 		MongoRepository<QueuesEntity> queuesRepository,
 		ITeachSenderHandler teachService,
-		//IRabbitMqQueueListener<RabbitMqQueueListener> queueListener,
+		IQueueListenerService queueListenerService,
 		IJsonParsingService jsonParsingService,
 		ILogger<TeachIntegrationService> logger) : ITeachIntegrationService
 	{
@@ -32,7 +32,7 @@ namespace servers_api.services.teaching
 					x.InQueueName == parsedCombinedModel.InQueueName &&
 					x.OutQueueName == parsedCombinedModel.OutQueueName)).FirstOrDefault();
 
-				logger.LogInformation("Выполняется сохранение в базу очередей.");
+				
 				var incomingQueuesEntitySave = new QueuesEntity()
 				{
 					InQueueName = parsedCombinedModel.InQueueName,
@@ -50,18 +50,32 @@ namespace servers_api.services.teaching
 					// Если модели нет — вставляем эту новую:
 					await queuesRepository.InsertAsync(incomingQueuesEntitySave);
 				}
+				logger.LogInformation("Сохранение в базу очередей выполнено.");
 
-				//3
-				// пробуем отправить сообщение в bpme
+				//3 пробуем отправить сообщение в bpme
 				logger.LogInformation("Выполняется ExecuteTeachAsync.");
 				var apiStatus = await teachService.TeachBPMAsync(
 					parsedCombinedModel,
 					stoppingToken);
 
-				return [
+				//4 если мы отправили модель в bpm - тогда есть смысл начать слушать из очереди, что она нам ответила
+				if (apiStatus.Result)
+				{
+					await queueListenerService.ExecuteAsync(stoppingToken);
+
+					return [
 					apiStatus,
 					new ResponseIntegration {
 						Message = $"Cлушатель очeреди {parsedCombinedModel.OutQueueName} запустился.",
+						Result = true
+					}
+				];
+				}
+
+				return [
+					apiStatus,
+					new ResponseIntegration {
+						Message = $"Не отправилась информация.",
 						Result = true
 					}
 				];

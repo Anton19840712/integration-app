@@ -1,5 +1,6 @@
 using Serilog;
 using servers_api.middleware;
+using servers_api.services.senders;
 using servers_api.services.teaching;
 
 Console.Title = "integration api";
@@ -18,7 +19,12 @@ try
 	//Запускаем интеграцию
 	using var scope = app.Services.CreateScope();
 	var teachIntegrationService = scope.ServiceProvider.GetRequiredService<ITeachIntegrationService>();
-	await teachIntegrationService.TeachAsync(CancellationToken.None);
+	var results = await teachIntegrationService.TeachAsync(CancellationToken.None);
+
+	foreach (var item in results)
+	{
+		Log.Information($"Динамический шлюз: {item.Message}");
+	}
 
 	ConfigureApp(app, httpUrl, httpsUrl);
 	await app.RunAsync();
@@ -40,7 +46,9 @@ static void ConfigureServices(WebApplicationBuilder builder)
 	var configuration = builder.Configuration;
 	var services = builder.Services;
 
+	services.AddTransient<IQueueListenerService, QueueListenerService>();
 	services.AddTransient<ITeachIntegrationService, TeachIntegrationService>();
+
 
 	// Регистрируем GateConfiguration
 	services.AddSingleton<GateConfiguration>();

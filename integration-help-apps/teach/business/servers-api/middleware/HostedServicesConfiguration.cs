@@ -1,4 +1,6 @@
-﻿namespace servers_api.middleware
+﻿using servers_api.services.senders;
+
+namespace servers_api.middleware
 {
 	static class HostedServicesConfiguration
 	{
@@ -7,8 +9,6 @@
 		/// </summary>
 		public static IServiceCollection AddHostedServices(this IServiceCollection services)
 		{
-			services.AddHostedService<QueueListenerBackgroundService>();
-
 			return services;
 		}
 	}

@@ -65,7 +65,6 @@ static void ConfigureServices(WebApplicationBuilder builder)
 	services.AddCommonServices();
 	services.AddHttpServices();
 	services.AddFactoryServices();
-	services.AddApiServices();
 	services.AddRabbitMqServices(configuration);
 	services.AddMessageServingServices();
 	services.AddMongoDbServices(configuration);

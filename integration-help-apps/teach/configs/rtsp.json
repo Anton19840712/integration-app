@@ -1,0 +1,27 @@
+{
+  "GatewaySettings": {
+    "Type": "rtsp",
+    "CompanyName": "RtspCompany",
+    "Host": "127.0.0.1",
+    "Port": "8554"
+  },
+  "RtspSettings": {
+    "FfmpegPath": "C:/PATH_Programs/ffmpeg.exe",
+    "NvrIp": "127.0.0.1",
+    "Port": 8554,
+    "Username": "",
+    "Password": "",
+    "UseTcp": true,
+    "Probesize": 100000000,
+    "Analyzeduration": 100000000,
+    "VideoCodec": "libx264",
+    "AudioCodec": "aac",
+    "Preset": "ultrafast",
+    "ForceKeyFrames": "expr:gte(t,n_forced*2)",
+    "HlsTime": 5,
+    "HlsListSize": 0,
+    "SegmentTemplate": "segment_channel{channel}_%d.ts",
+    "OutputTemplate": "stream_channel{channel}.m3u8",
+    "AutoStartChannels": [1, 2, 3]
+  }
+}

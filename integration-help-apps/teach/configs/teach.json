@@ -1,0 +1,19 @@
+{
+  "targetUrl": "https://localhost:7054/Integration/save",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": "5001"
+  },
+  "metadata": {
+    "protocol": "HTTP",
+    "dataFormat": "json",
+    "companyName": "epam"
+  },
+  "payload": {
+	"shipmentId": "12345",
+	"destination": "New York",
+	"weightKg": 250,
+	"status": "In Transit",
+	"estimatedDelivery": "2025-01-25"
+  }
+}

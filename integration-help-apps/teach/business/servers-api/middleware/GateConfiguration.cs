@@ -16,19 +16,10 @@ public class GateConfiguration
 		var host = connection?["host"]?.ToString() ?? "localhost";
 		var port = int.TryParse(connection?["port"]?.ToString(), out var p) ? p : 5000;
 
-		builder.Configuration["Host"] = host;
-		builder.Configuration["Port"] = port.ToString();
-
-		var metadata = config["metadata"];
-		if (metadata != null)
-		{
-			builder.Configuration["Protocol"] = metadata["protocol"]?.ToString() ?? "UNKNOWN";
-			builder.Configuration["DataFormat"] = metadata["dataFormat"]?.ToString() ?? "UNKNOWN";
-			builder.Configuration["CompanyName"] = metadata["companyName"]?.ToString() ?? "UNKNOWN";
-		}
-
-		builder.Configuration["Payload"] = config["payload"].ToString() ?? "UNKNOWN";
-		builder.Configuration["TargetUrl"] = config["targetUrl"].ToString() ?? "UNKNOWN";
+		builder.Configuration["host"] = host;
+		builder.Configuration["port"] = port.ToString();
+		builder.Configuration["in_queue"] = config["in_queue"].ToString() ?? "UNKNOWN";
+		builder.Configuration["out_queue"] = config["out_queue"].ToString() ?? "UNKNOWN";
 
 		var httpUrl = $"http://{host}:80";
 		var httpsUrl = $"https://{host}:443";

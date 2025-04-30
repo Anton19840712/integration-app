@@ -1,7 +1,6 @@
 ﻿using servers_api.models.dynamicgatesettings.entities;
 using servers_api.models.response;
 using servers_api.repositories;
-using servers_api.services.senders;
 
 namespace servers_api.services.teaching
 {
@@ -11,8 +10,6 @@ namespace servers_api.services.teaching
 	/// </summary>
 	public class TeachIntegrationService(
 		MongoRepository<QueuesEntity> queuesRepository,
-		ITeachSenderHandler teachService,
-		IQueueListenerService queueListenerService,
 		IJsonParsingService jsonParsingService,
 		ILogger<TeachIntegrationService> logger) : ITeachIntegrationService
 	{
@@ -22,16 +19,15 @@ namespace servers_api.services.teaching
 
 			try
 			{
-				//1
+				//1:
 				logger.LogInformation("Выполняется ParseJsonAsync.");
 				var parsedCombinedModel = await jsonParsingService.ParseFromConfigurationAsync(stoppingToken);
 
-				//2 логика работы с коллекцией базы данных: 
+				//2 логика работы с коллекцией базы данных:
 				//если модель с такими названиями очередей существует:
 				var existingQueueEntityModel = (await queuesRepository.FindAsync(x =>
 					x.InQueueName == parsedCombinedModel.InQueueName &&
 					x.OutQueueName == parsedCombinedModel.OutQueueName)).FirstOrDefault();
-
 				
 				var incomingQueuesEntitySave = new QueuesEntity()
 				{
@@ -52,30 +48,9 @@ namespace servers_api.services.teaching
 				}
 				logger.LogInformation("Сохранение в базу очередей выполнено.");
 
-				//3 пробуем отправить сообщение в bpme
-				logger.LogInformation("Выполняется ExecuteTeachAsync.");
-				var apiStatus = await teachService.TeachBPMAsync(
-					parsedCombinedModel,
-					stoppingToken);
-
-				//4 если мы отправили модель в bpm - тогда есть смысл начать слушать из очереди, что она нам ответила
-				if (apiStatus.Result)
-				{
-					await queueListenerService.ExecuteAsync(stoppingToken);
-
-					return [
-					apiStatus,
-					new ResponseIntegration {
-						Message = $"Cлушатель очeреди {parsedCombinedModel.OutQueueName} запустился.",
-						Result = true
-					}
-				];
-				}
-
 				return [
-					apiStatus,
 					new ResponseIntegration {
-						Message = $"Не отправилась информация.",
+						Message = $"Очереди были сохранены в базу успешно.",
 						Result = true
 					}
 				];

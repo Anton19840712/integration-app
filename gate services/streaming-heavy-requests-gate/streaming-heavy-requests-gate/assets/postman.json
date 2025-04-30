@@ -1,0 +1,81 @@
+// для импортирования в постман для совершения запросов.
+{
+	"info": {
+		"name": "RtspStreamProxy API",
+		"_postman_id": "12345",
+		"description": "API для управления потоками RTSP",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/rtsp/start/{{channel}}?streamType={{streamType}}",
+					"host": [ "{{baseUrl}}" ],
+					"path": [ "api", "rtsp", "start", "{{channel}}" ],
+					"query": [
+						{
+							"key": "streamType",
+							"value": "{{streamType}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/rtsp/stop/{{channel}}",
+					"host": [ "{{baseUrl}}" ],
+					"path": [ "api", "rtsp", "stop", "{{channel}}" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/rtsp/stop-all",
+					"host": [ "{{baseUrl}}" ],
+					"path": [ "api", "rtsp", "stop", "{{channel}}" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/rtsp/status/{{channel}}",
+					"host": [ "{{baseUrl}}" ],
+					"path": [ "api", "rtsp", "status", "{{channel}}" ]
+				}
+			},
+			"response": []
+		}
+	]
+}

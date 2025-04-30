@@ -1,0 +1,15 @@
+{
+	"GatewaySettings": {
+		"Type": "sftp",
+		"CompanyName": "RtspCompany",
+		"Host": "127.0.0.1",
+		"Port": "8554"
+  },
+	"SftpSettings": {
+		"Host": "172.16.205.118",
+		"Port": 22,
+		"UserName": "tester",
+		"Password": "password",
+		"Source": "."
+	}
+}

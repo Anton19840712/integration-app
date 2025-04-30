@@ -1,0 +1,7 @@
+{
+  "type": "teach",
+  "in_queue": "in_epam",
+  "out_queue": "in_epam",
+  "host": "127.0.0.1",
+  "port": "5000"
+}

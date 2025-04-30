@@ -1,10 +1,11 @@
+using lazy_light_requests_gate.middleware;
 using Serilog;
-using servers_api.middleware;
-using servers_api.services.teaching;
 
-Console.Title = "integration api";
+Console.Title = "slow & light dynamic gate";
 
 var builder = WebApplication.CreateBuilder(args);
+
+LoggingConfiguration.ConfigureLogging(builder);
 
 ConfigureServices(builder);
 
@@ -12,20 +13,14 @@ var app = builder.Build();
 
 try
 {
+	// Настройка динамического шлюза (через зарегистрированный сервис)
 	var gateConfigurator = app.Services.GetRequiredService<GateConfiguration>();
 	var (httpUrl, httpsUrl) = await gateConfigurator.ConfigureDynamicGateAsync(args, builder);
 
-	//Запускаем интеграцию:
-	using var scope = app.Services.CreateScope();
-	var teachIntegrationService = scope.ServiceProvider.GetRequiredService<ITeachIntegrationService>();
-	var results = await teachIntegrationService.TeachAsync(CancellationToken.None);
-
-	foreach (var item in results)
-	{
-		Log.Information($"Динамический шлюз: {item.Message}");
-	}
-
+	// Применяем настройки приложения
 	ConfigureApp(app, httpUrl, httpsUrl);
+
+	// Запускаем
 	await app.RunAsync();
 }
 catch (Exception ex)
@@ -40,21 +35,25 @@ finally
 
 static void ConfigureServices(WebApplicationBuilder builder)
 {
-	LoggingConfiguration.ConfigureLogging(builder);
 
 	var configuration = builder.Configuration;
+
 	var services = builder.Services;
 
-	services.AddTransient<ITeachIntegrationService, TeachIntegrationService>();
-
-	// Регистрируем GateConfiguration:
-	services.AddSingleton<GateConfiguration>();
-	services.AddHttpClient();
 	services.AddControllers();
+
 	services.AddCommonServices();
-	services.AddApiServices();
+	services.AddHttpServices();
+	services.AddRabbitMqServices(configuration);
+	services.AddMessageServingServices();
 	services.AddMongoDbServices(configuration);
 	services.AddMongoDbRepositoriesServices(configuration);
+	services.AddValidationServices();
+	services.AddHostedServices();
+	services.AddHeadersServices();
+
+	// Регистрируем GateConfiguration
+	services.AddSingleton<GateConfiguration>();
 }
 
 static void ConfigureApp(WebApplication app, string httpUrl, string httpsUrl)

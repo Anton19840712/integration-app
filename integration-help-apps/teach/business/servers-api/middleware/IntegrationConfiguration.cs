@@ -10,7 +10,6 @@ namespace servers_api.middleware
 		public static IServiceCollection AddApiServices(this IServiceCollection services)
 		{
 			services.AddTransient<IJsonParsingService, JsonParsingService>();
-			services.AddTransient<ITeachSenderHandler, TeachSenderHandler>();
 
 			return services;
 		}

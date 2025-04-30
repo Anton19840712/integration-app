@@ -1,6 +1,0 @@
-@WebApplicationRTSPSample_HostAddress = http://localhost:5106
-
-GET {{WebApplicationRTSPSample_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

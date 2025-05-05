@@ -114,7 +114,7 @@ public class GateConfiguration
 			}
 			else
 			{
-				var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".."));
+				var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", ".."));
 				fullPath = Path.GetFullPath(Path.Combine(basePath, configFilePath));
 			}
 

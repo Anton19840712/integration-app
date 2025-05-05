@@ -1,5 +1,7 @@
 {
   "type": "stream",
+  "httpPort": 80,
+  "httpsPort": 443,
   "protocol": "TCP",
   "dataFormat": "json",
   "companyName": "corporation",

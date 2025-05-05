@@ -75,16 +75,32 @@ static void ConfigureServices(WebApplicationBuilder builder)
 
 static void ConfigureApp(WebApplication app, string httpUrl, string httpsUrl)
 {
-	app.Urls.Add(httpUrl);
-	app.Urls.Add(httpsUrl);
-	Log.Information($"Middleware: динамический шлюз запущен и принимает запросы на следующих точках: {httpUrl} и {httpsUrl}");
+	try
+	{
+		if (!string.IsNullOrEmpty(httpUrl))
+			app.Urls.Add(httpUrl);
 
-	app.UseSerilogRequestLogging();
+		if (!string.IsNullOrEmpty(httpsUrl))
+			app.Urls.Add(httpsUrl);
 
-	app.UseCors(cors => cors
-		.AllowAnyOrigin()
-		.AllowAnyMethod()
-		.AllowAnyHeader());
+		Log.Information($"Приложение слушает:");
+		if (!string.IsNullOrEmpty(httpUrl))
+			Log.Information($"[HTTP] {httpUrl}");
 
-	app.MapControllers();
+		if (!string.IsNullOrEmpty(httpsUrl))
+			Log.Information($"[HTTPS] {httpsUrl}");
+
+		app.UseSerilogRequestLogging();
+
+		app.UseCors(cors => cors
+			.AllowAnyOrigin()
+			.AllowAnyMethod()
+			.AllowAnyHeader());
+
+		app.MapControllers();
+	}
+	catch (Exception ex)
+	{
+		Log.Error(ex, "Ошибка при настройке приложения (возможно, проблема с SSL-сертификатом)");
+	}
 }

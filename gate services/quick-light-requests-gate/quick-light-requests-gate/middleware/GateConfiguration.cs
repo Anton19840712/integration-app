@@ -20,31 +20,7 @@ public class GateConfiguration
 		if (configType == null)
 			throw new InvalidOperationException("Тип конфигурации не найден.");
 
-		var configTypeStr = configType.ToLowerInvariant();
-
-		return configTypeStr switch
-		{
-			"rest" => ConfigureRestGate(config, builder),
-			"stream" => await ConfigureStreamGateAsync(config, builder),
-			_ => throw new InvalidOperationException($"Неподдерживаемый тип конфигурации: {configTypeStr}")
-		};
-	}
-
-	private (string HttpUrl, string HttpsUrl) ConfigureRestGate(JObject config, WebApplicationBuilder builder)
-	{
-		var companyName = config["CompanyName"]?.ToString() ?? "default-company";
-		var host = config["Host"]?.ToString() ?? "localhost";
-		var port = int.TryParse(config["Port"]?.ToString(), out var p) ? p : 5000;
-		var enableValidation = bool.TryParse(config["Validate"]?.ToString(), out var v) && v;
-
-		builder.Configuration["CompanyName"] = companyName;
-		builder.Configuration["Host"] = host;
-		builder.Configuration["Port"] = port.ToString();
-		builder.Configuration["Validate"] = enableValidation.ToString();
-
-		var httpUrl = $"http://{host}:80";
-		var httpsUrl = $"https://{host}:443";
-		return (httpUrl, httpsUrl);
+		return await ConfigureStreamGateAsync(config, builder);
 	}
 
 	private async Task<(string HttpUrl, string HttpsUrl)> ConfigureStreamGateAsync(JObject jobjectConfig, WebApplicationBuilder builder)
@@ -96,8 +72,32 @@ public class GateConfiguration
 			throw new InvalidOperationException("Не задан ни client, ни server в dataOptions.");
 		}
 
-		var httpUrl = $"http://{host}:80";
-		var httpsUrl = $"https://{host}:443";
+		int httpPort = int.TryParse(jobjectConfig["httpPort"]?.ToString(), out var hPort) ? hPort : -1;
+		int httpsPort = int.TryParse(jobjectConfig["httpsPort"]?.ToString(), out var sPort) ? sPort : -1;
+
+		var urls = new List<string>();
+
+		string httpUrl = string.Empty, httpsUrl = string.Empty;
+
+		if (httpPort > 0)
+		{
+			httpUrl = $"http://{host}:{httpPort}";
+			urls.Add(httpUrl);
+		}
+
+		if (httpsPort > 0)
+		{
+			httpsUrl = $"https://{host}:{httpsPort}";
+			urls.Add(httpsUrl);
+		}
+
+		if (httpPort <= 0 && httpsPort <= 0)
+		{
+			httpUrl = $"http://{host}:80";
+			httpsUrl = $"https://{host}:443";
+			urls.Add(httpUrl);
+			urls.Add(httpsUrl);
+		}
 
 		return (httpUrl, httpsUrl);
 	}
@@ -106,24 +106,35 @@ public class GateConfiguration
 	{
 		try
 		{
-			var basePath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "..", ".."));
-			//var fullPath = Path.GetFullPath(configFilePath, basePath);
-			var fullPath = Path.GetFullPath(configFilePath);
+			string fullPath;
 
-			var fileName = Path.GetFileName(fullPath);
+			if (Path.IsPathRooted(configFilePath))
+			{
+				fullPath = configFilePath;
+			}
+			else
+			{
+				var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".."));
+				fullPath = Path.GetFullPath(Path.Combine(basePath, configFilePath));
+			}
 
+			// Печатаем информацию для отладки.
 			Console.WriteLine();
-			Console.WriteLine($"[INFO] Base path: {basePath}");
-			Console.WriteLine($"[INFO] Full config path: {fullPath}");
-			Console.WriteLine($"[INFO] Загружается конфигурация: {fileName}");
+			Console.WriteLine($"[INFO] Конечный путь к конфигу: {fullPath}");
+			Console.WriteLine($"[INFO] Загружается конфигурация: {Path.GetFileName(fullPath)}");
 			Console.WriteLine();
 
+			// Проверка существования файла.
+			if (!File.Exists(fullPath))
+				throw new FileNotFoundException("Файл конфигурации не найден", fullPath);
+
+			// Загружаем конфигурацию из файла.
 			var json = File.ReadAllText(fullPath);
 			return JObject.Parse(json);
 		}
 		catch (Exception ex)
 		{
-			throw new InvalidOperationException($"Ошибка при загрузке конфигурации из файла {configFilePath}: {ex.Message}");
+			throw new InvalidOperationException($"Ошибка при загрузке конфигурации из файла '{configFilePath}': {ex.Message}");
 		}
 	}
 }
